@@ -42,6 +42,7 @@ code_files = files(
     'Services/TemplateManager.vala',
     'Widgets/ChooseProjectButton.vala',
     'Widgets/DocumentView.vala',
+    'Widgets/DocumentViewNext.vala',
     'Widgets/FormatBar.vala',
     'Widgets/SourceGutterRenderer.vala',
     'Widgets/HeaderBar.vala',
