@@ -5,20 +5,12 @@
  * Authored by: Colin Kiama <colinkiama@gmail.com>
  */
 
-
-
-public class Code.Tab : GLib.Object {
-    public Scratch.Services.DocumentNext document { get; set; }
-    public Hdy.TabPage tab_page { get; set; }
-
-
-}
 public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
      public enum TargetType {
         URI_LIST
     }
 
-    public Gee.ArrayList<Code.Tab> tabs;
+    public GLib.List<Services.DocumentNext> docs;
 
     private Services.DocumentNext _current_document;
     public Services.DocumentNext current_document {
@@ -51,7 +43,7 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
     }
 
     construct {
-        tabs = new Gee.ArrayList<Code.Tab> ();
+        docs = new GLib.List<Services.DocumentNext> ();
         var app_instance = (Gtk.Application) GLib.Application.get_default ();
         tab_view = new Hdy.TabView () {
             hexpand = true,
@@ -86,8 +78,21 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
             view = tab_view,
         };
 
-         // Layout
-        // tab_view.page_attached.connect (on_doc_added);
+        // TabView tab events
+        tab_view.close_page.connect ((tab) => {
+            var doc = search_for_document_in_tab (tab);
+            if (doc == null) {
+                tab_view.close_page_finish (tab, true);
+            } else {
+                doc.do_close.begin (false, (obj, res) => {
+                    var should_close = doc.do_close.end (res);
+                    tab_view.close_page_finish (tab, should_close);
+                });
+            }
+
+            return true;
+        });
+
         // tab_view.page_detached.connect (on_doc_removed);
         // tab_vew.page_reordered.connect (on_doc_reordered);
         // tab_moved.connect (on_doc_moved);
@@ -118,6 +123,31 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
         return box;
     }
 
+    public Services.DocumentNext search_for_document_in_tab (Hdy.TabPage tab) {
+        unowned var current = docs;
+
+        bool shouldEndSearch = false;
+        Services.DocumentNext matching_document = null;
+
+        while (!shouldEndSearch) {
+            if (current == null || current.length () == 0) {
+                shouldEndSearch = true;
+            } else {
+                var doc = current.data;
+                if (doc.tab == tab) {
+                    matching_document = doc;
+                    shouldEndSearch = true;
+                }
+
+                current = current.next;
+            }
+
+        }
+
+        return matching_document;
+    }
+
+
 
     public void new_document () {
         var file = File.new_for_path (unsaved_file_path_builder ());
@@ -133,13 +163,8 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
     }
 
     public void open_document (Services.DocumentNext doc, bool focus = true, int cursor_position = 0, SelectionRange range = SelectionRange.EMPTY) {
-        for (int n = 0; n < tabs.size; n++) {
-            var nth_tab = tabs.get (n);
-            if (nth_tab == null) {
-                continue;
-            }
-
-            var nth_doc = tabs.get (n).document;
+       for (int n = 0; n <= docs.length (); n++) {
+            var nth_doc = docs.nth_data (n);
             if (nth_doc == null) {
                 continue;
             }
@@ -163,7 +188,7 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
             }
         }
 
-        insert_document (doc, tabs.size + 1);
+        insert_document (doc, (int) docs.length ());
         // if (focus) {
         //     current_document = doc;
         // }
@@ -191,6 +216,7 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
     private void insert_document (Scratch.Services.DocumentNext doc, int pos) {
         var page = tab_view.insert (doc, pos);
         doc.init_tab (page);
+        on_doc_added (doc);
         if (Scratch.saved_state.get_boolean ("outline-visible")) {
             debug ("setting outline visible");
             doc.show_outline (true);
@@ -205,5 +231,25 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
                                 );
 
         return Path.build_filename (window.app.data_home_folder_unsaved, new_text_file) + "." + extension;
+    }
+
+    private void on_doc_added (Services.DocumentNext doc) {
+        //  var doc = search_for_document_in_tab (tab);
+        //  if (doc == null) {
+        //      print ("No tab!\n");
+        //      return;
+        //  }
+
+        docs.append (doc);
+        doc.actions = window.actions;
+
+        // Scratch.Services.DocumentManager.get_instance ().add_open_document (doc);
+
+        // if (!doc.is_file_temporary) {
+        //     rename_tabs_with_same_title (doc);
+        // }
+
+        // doc.source_view.focus_in_event.connect_after (on_focus_in_event);
+
     }
 }
