@@ -126,17 +126,17 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
     public Services.DocumentNext search_for_document_in_tab (Hdy.TabPage tab) {
         unowned var current = docs;
 
-        bool shouldEndSearch = false;
+        bool should_end_search = false;
         Services.DocumentNext matching_document = null;
 
-        while (!shouldEndSearch) {
+        while (!should_end_search) {
             if (current == null || current.length () == 0) {
-                shouldEndSearch = true;
+                should_end_search = true;
             } else {
                 var doc = current.data;
                 if (doc.tab == tab) {
                     matching_document = doc;
-                    shouldEndSearch = true;
+                    should_end_search = true;
                 }
 
                 current = current.next;
@@ -189,28 +189,28 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
         }
 
         insert_document (doc, (int) docs.length ());
-        // if (focus) {
-        //     current_document = doc;
-        // }
+        if (focus) {
+            current_document = doc;
+        }
 
-        // Idle.add_full (GLib.Priority.LOW, () => { // This helps ensures new tab is drawn before opening document.
-        //     doc.open.begin (false, (obj, res) => {
-        //         doc.open.end (res);
-        //         if (focus && doc == current_document) {
-        //             doc.focus ();
-        //         }
+        Idle.add_full (GLib.Priority.LOW, () => { // This helps ensures new tab is drawn before opening document.
+            doc.open.begin (false, (obj, res) => {
+                doc.open.end (res);
+                if (focus && doc == current_document) {
+                    doc.focus ();
+                }
 
-        //         if (range != SelectionRange.EMPTY) {
-        //             doc.source_view.select_range (range);
-        //         } else if (cursor_position > 0) {
-        //             doc.source_view.cursor_position = cursor_position;
-        //         }
+                if (range != SelectionRange.EMPTY) {
+                    doc.source_view.select_range (range);
+                } else if (cursor_position > 0) {
+                    doc.source_view.cursor_position = cursor_position;
+                }
 
-        //         // save_opened_files ();
-        //     });
+                //  save_opened_files ();
+            });
 
-        //     return false;
-        // });
+            return false;
+        });
     }
 
     private void insert_document (Scratch.Services.DocumentNext doc, int pos) {

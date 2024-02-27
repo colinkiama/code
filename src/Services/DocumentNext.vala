@@ -111,9 +111,9 @@ namespace Scratch.Services {
             }
 
             set {
-                icon = value;
+                _icon = value;
                 if (tab != null) {
-                    tab.icon = icon;
+                    tab.icon = _icon;
                 }
             }
         }
@@ -148,9 +148,9 @@ namespace Scratch.Services {
             }
 
             set {
-                loading = value;
+                _loading = value;
                 if (tab != null) {
-                    tab.loading = true;
+                    tab.loading = _loading;
                 }
             }
         }
