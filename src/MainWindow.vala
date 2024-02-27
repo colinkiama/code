@@ -29,6 +29,7 @@ namespace Scratch {
         public RestoreOverride restore_override { get; construct set; }
 
         public Scratch.Widgets.DocumentView document_view;
+        public Scratch.Widgets.DocumentViewNext document_view_next;
 
         // Widgets
         public Scratch.HeaderBar toolbar;
@@ -437,6 +438,7 @@ namespace Scratch {
 
             welcome_view = new Code.WelcomeView (this);
             document_view = new Scratch.Widgets.DocumentView (this);
+            document_view_next = new Scratch.Widgets.DocumentViewNext (this);
             // Handle Drag-and-drop for files functionality on welcome screen
             Gtk.TargetEntry target = {"text/uri-list", 0, 0};
             Gtk.drag_dest_set (welcome_view, Gtk.DestDefaults.ALL, {target}, Gdk.DragAction.COPY);
@@ -513,7 +515,8 @@ namespace Scratch {
             };
 
             content_stack.add (view_grid);  // Must be added first to avoid terminal warnings
-            content_stack.add (welcome_view);
+            // content_stack.add (welcome_view);
+            content_stack.add (document_view_next);
             content_stack.visible_child = view_grid; // Must be visible while restoring
 
             // Set a proper position for ThinPaned widgets
@@ -573,7 +576,8 @@ namespace Scratch {
             });
 
             document_view.request_placeholder.connect (() => {
-                content_stack.visible_child = welcome_view;
+                // content_stack.visible_child = welcome_view;
+                content_stack.visible_child = document_view_next;
                 title = base_title;
                 toolbar.document_available (false);
                 set_widgets_sensitive (false);
@@ -1368,3 +1372,5 @@ namespace Scratch {
          }
     }
 }
+
+

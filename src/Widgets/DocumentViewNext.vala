@@ -10,6 +10,9 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
         URI_LIST
     }
 
+    public signal void document_change (Services.DocumentNext? document, DocumentViewNext parent);
+    public signal void request_placeholder ();
+
     public GLib.List<Services.DocumentNext> docs;
 
     private Services.DocumentNext _current_document;
@@ -23,7 +26,6 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
     }
 
     public unowned MainWindow window { get; construct; }
-    public signal void request_placeholder ();
 
     public bool is_closing = false;
     public bool outline_visible { get; set; default = false; }
@@ -93,7 +95,7 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
             return true;
         });
 
-        // tab_view.page_detached.connect (on_doc_removed);
+        tab_view.page_detached.connect (on_doc_removed);
         // tab_vew.page_reordered.connect (on_doc_reordered);
         // tab_moved.connect (on_doc_moved);
 
@@ -197,6 +199,7 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
             doc.open.begin (false, (obj, res) => {
                 doc.open.end (res);
                 if (focus && doc == current_document) {
+                    tab_view.selected_page = doc.tab;
                     doc.focus ();
                 }
 
@@ -211,6 +214,25 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
 
             return false;
         });
+    }
+
+    public void request_placeholder_if_empty () {
+        if (docs.length () == 0) {
+            request_placeholder ();
+        }
+    }
+
+    public void save_opened_files () {
+        if (privacy_settings.get_boolean ("remember-recent-files")) {
+            var vb = new VariantBuilder (new VariantType ("a(si)"));
+            docs.foreach ((doc) => {
+                if (doc.file != null && doc.exists ()) {
+                    vb.add ("(si)", doc.file.get_uri (), doc.source_view.cursor_position);
+                }
+            });
+
+            Scratch.settings.set_value ("opened-files", vb.end ());
+        }
     }
 
     private void insert_document (Scratch.Services.DocumentNext doc, int pos) {
@@ -249,7 +271,44 @@ public class Scratch.Widgets.DocumentViewNext : Gtk.Box {
         //     rename_tabs_with_same_title (doc);
         // }
 
-        // doc.source_view.focus_in_event.connect_after (on_focus_in_event);
-
+        doc.source_view.focus_in_event.connect_after (on_focus_in_event);
     }
+
+    private void on_doc_removed (Hdy.TabPage tab, int position) {
+        var doc = search_for_document_in_tab (tab);
+        if (doc == null) {
+            return;
+        }
+
+        docs.remove (doc);
+        //  Scratch.Services.DocumentManager.get_instance ().remove_open_document (doc);
+
+        doc.source_view.focus_in_event.disconnect (on_focus_in_event);
+
+        request_placeholder_if_empty ();
+
+        if (docs.length () > 0) {
+            if (!doc.is_file_temporary) {
+                foreach (var d in docs) {
+                    //  rename_tabs_with_same_title (d);
+                }
+            }
+        }
+
+        if (!is_closing) {
+            save_opened_files ();
+        }
+    }
+
+    private bool on_focus_in_event () {
+        var doc = current_document;
+        if (doc == null) {
+            warning ("Focus event callback cannot get current document");
+        } else {
+            document_change (doc, this);
+        }
+
+        return false;
+    }
+
 }
