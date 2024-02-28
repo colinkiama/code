@@ -300,8 +300,6 @@ namespace Scratch.Services {
 
             add (main_stack);
             this.show_all ();
-
-            print ("Showing documeent next!");
         }
 
         public void init_tab (Hdy.TabPage tab) {
