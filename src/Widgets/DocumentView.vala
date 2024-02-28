@@ -118,6 +118,14 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         tab_view.page_reordered.connect (on_doc_reordered);
         // tab_moved.connect (on_doc_moved);
 
+        notify["outline-visible"].connect (update_outline_visible);
+        Scratch.saved_state.bind ("outline-width", this, "outline-width", DEFAULT);
+        this.notify["outline-width"].connect (() => {
+            foreach (var doc in docs) {
+                doc.set_outline_width (outline_width);
+            }
+        });
+
         // Handle Drag-and-drop of files onto add-tab button to create document
         Gtk.TargetEntry uris = {"text/uri-list", 0, TargetType.URI_LIST};
         var drag_dest_targets = new Gtk.TargetList ({uris});
@@ -357,6 +365,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
     private void on_doc_removed (Hdy.TabPage tab, int position) {
         request_placeholder_if_empty ();
     }
+
     private void on_doc_reordered (Hdy.TabPage tab, int new_position) {
         var doc = search_for_document_in_tab (tab);
         docs.remove (doc);
