@@ -23,7 +23,14 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             return _current_document;
         }
         set {
+            if (is_closing) {
+                return;
+            }
+
             _current_document = value;
+            document_change (_current_document, this);
+            _current_document.focus ();
+            save_focused_document_uri (current_document);
             if (tab_view.selected_page != value.tab) {
                 tab_view.selected_page = value.tab;
             }
@@ -59,9 +66,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
 
         tab_view.notify["selected-page"].connect (() => {
             current_document = search_for_document_in_tab (tab_view.selected_page);
-            print ("Selected page changed!\n");
         });
-
 
         var new_tab_button = new Gtk.Button.from_icon_name ("list-add-symbolic") {
             relief = Gtk.ReliefStyle.NONE,
@@ -286,6 +291,10 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         });
     }
 
+    public new void focus () {
+        current_document.focus ();
+    }
+
     private void insert_document (Scratch.Services.Document doc, int pos) {
         var page = tab_view.insert (doc, pos);
         doc.init_tab (page);
@@ -387,4 +396,17 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         doc.tab_name = doc_tab_name;
     }
 
+    private void save_focused_document_uri (Services.Document? current_document) {
+        if (privacy_settings.get_boolean ("remember-recent-files")) {
+            var file_uri = "";
+
+            if (current_document != null) {
+                file_uri = current_document.file.get_uri ();
+            }
+
+            print ("Focused document uri to save: %s\n", file_uri);
+
+            Scratch.settings.set_string ("focused-document", file_uri);
+        }
+    }
 }
