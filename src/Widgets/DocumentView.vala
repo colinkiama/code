@@ -319,11 +319,14 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
     }
 
     private void on_doc_removed (Hdy.TabPage tab, int position) {
+        current_document = search_for_document_in_tab (tab_view.selected_page);
+        
         var doc = search_for_document_in_tab (tab);
         if (doc == null) {
             return;
         }
-
+        
+        tab_removed (doc);
         docs.remove (doc);
         Scratch.Services.DocumentManager.get_instance ().remove_open_document (doc);
 
@@ -342,8 +345,6 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         if (!is_closing) {
             save_opened_files ();
         }
-
-        tab_removed (doc);
     }
 
     private bool on_focus_in_event () {
