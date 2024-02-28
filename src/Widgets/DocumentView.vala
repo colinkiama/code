@@ -115,7 +115,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         });
 
         tab_view.page_detached.connect (on_doc_removed);
-        // tab_vew.page_reordered.connect (on_doc_reordered);
+        tab_view.page_reordered.connect (on_doc_reordered);
         // tab_moved.connect (on_doc_moved);
 
         // Handle Drag-and-drop of files onto add-tab button to create document
@@ -356,6 +356,13 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
 
     private void on_doc_removed (Hdy.TabPage tab, int position) {
         request_placeholder_if_empty ();
+    }
+    private void on_doc_reordered (Hdy.TabPage tab, int new_position) {
+        var doc = search_for_document_in_tab (tab);
+        docs.remove (doc);
+        docs.insert (doc, new_position);
+        current_document = doc;
+        save_opened_files ();
     }
 
     private bool on_focus_in_event () {
