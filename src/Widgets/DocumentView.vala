@@ -90,6 +90,10 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             } else {
                 doc.do_close.begin (false, (obj, res) => {
                     var should_close = doc.do_close.end (res);
+                    if (should_close) {
+                        docs.remove (doc);
+                    }
+
                     tab_view.close_page_finish (tab, should_close);
                 });
             }
@@ -325,7 +329,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         if (doc == null) {
             return;
         }
-        
+
         tab_removed (doc);
         docs.remove (doc);
         Scratch.Services.DocumentManager.get_instance ().remove_open_document (doc);
