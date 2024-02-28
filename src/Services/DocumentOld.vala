@@ -20,12 +20,12 @@
 ***/
 
 namespace Scratch.Services {
-    // public enum DocumentStates {
-    //     NORMAL,
-    //     READONLY
-    // }
+    public enum DocumentStates {
+        NORMAL,
+        READONLY
+    }
 
-    public class DocumentNext : Gtk.Box {
+    public class Document : Granite.Widgets.Tab {
         private const uint LOAD_TIMEOUT_MSEC = 5000;
 
         public delegate void VoidFunc ();
@@ -34,9 +34,6 @@ namespace Scratch.Services {
 
         // The parent window's actions
         public unowned SimpleActionGroup actions { get; set construct; }
-
-        // The TabPage that this document is a child of
-        public unowned Hdy.TabPage tab { get; private set; }
 
         public bool is_file_temporary {
             get {
@@ -64,21 +61,10 @@ namespace Scratch.Services {
             }
         }
 
-         public string tab_name {
+        public string tab_name {
             set {
-                title = value;
-            }
-        }
-
-        private string _title = "";
-        public string title {
-            get { return _title; }
-            set {
-                _title = value;
-                if (tab != null) {
-                    tab.title = value;
-                    tab.tooltip = get_tab_tooltip ();
-                }
+                label = value;
+                tooltip = get_tab_tooltip ();
             }
         }
 
@@ -104,20 +90,6 @@ namespace Scratch.Services {
             }
         }
 
-        private Icon _icon = null;
-        public Icon icon {
-            get {
-                return _icon;
-            }
-
-            set {
-                _icon = value;
-                if (tab != null) {
-                    tab.icon = _icon;
-                }
-            }
-        }
-
         // Locked documents can be edited but cannot be (auto)saved to the current file.
         // Locked documents can be saved to a different file (when they will be unlocked)
         // Create as locked so focus events ignored. Unlock when content is loaded
@@ -138,20 +110,6 @@ namespace Scratch.Services {
                 }
                 // Show "unsaved" marker on tab when locked even when autosave is ON
                 set_saved_status (!source_view.buffer.get_modified ());
-            }
-        }
-
-        private bool _loading = false;
-        public bool loading {
-            get {
-                return _loading;
-            }
-
-            set {
-                _loading = value;
-                if (tab != null) {
-                    tab.loading = _loading;
-                }
             }
         }
 
@@ -185,14 +143,11 @@ namespace Scratch.Services {
         private static Pango.FontDescription? builder_blocks_font = null;
         private static Pango.FontMap? builder_font_map = null;
 
-        public DocumentNext (SimpleActionGroup actions, File file) {
-            Object (
-                actions: actions
-                // hexpand: true,
-                // vexpand: true
-            );
+        public Document (SimpleActionGroup actions, File file) {
+            Object (actions: actions);
 
             this.file = file;
+            page = main_stack;
         }
 
         static construct {
@@ -234,6 +189,11 @@ namespace Scratch.Services {
             set_strip_trailing_whitespace ();
             settings.changed["show-mini-map"].connect (set_minimap);
             settings.changed["strip-trailing-on-save"].connect (set_strip_trailing_whitespace);
+
+            /* Block user editing while working */
+            notify["working"].connect (() => {
+                source_view.sensitive = !working;
+            });
 
             var source_grid = new Gtk.Grid () {
                 orientation = Gtk.Orientation.HORIZONTAL,
@@ -297,23 +257,7 @@ namespace Scratch.Services {
             });
 
             loaded = file == null;
-
-            add (main_stack);
-            this.show_all ();
-
-            print ("Showing documeent next!");
-        }
-
-        public void init_tab (Hdy.TabPage tab) {
-            this.tab = tab;
-            /* Block user editing while tab is loading */
-            notify["tab.loading"].connect (() => {
-                source_view.sensitive = !tab.loading;
-            });
-
-            tab.title = title;
-            // tab.icon = icon;
-            tab.tooltip = get_tab_tooltip ();
+            ellipsize_mode = Pango.EllipsizeMode.MIDDLE;
         }
 
         public void toggle_changed_handlers (bool enabled) {
@@ -372,7 +316,7 @@ namespace Scratch.Services {
             }
 
             source_view.sensitive = false;
-            loading = true;
+            this.working = true;
 
             var content_type = ContentType.from_mime_type (mime_type);
 
@@ -389,7 +333,7 @@ namespace Scratch.Services {
                     alert_view.destroy ();
                 });
 
-                loading = false;
+                working = false;
                 return;
             }
 
@@ -435,7 +379,7 @@ namespace Scratch.Services {
             } catch (Error e) {
                 critical (e.message);
                 source_view.buffer.text = "";
-                loading = false;
+                working = false;
                 show_default_load_error_view (buffer.text);
                 return;
             } finally {
@@ -455,11 +399,11 @@ namespace Scratch.Services {
             doc_opened ();
             source_view.sensitive = true;
 
-            /* Do not stop tab loading (blocks editing) until idle
+            /* Do not stop working (blocks editing) until idle
              * (large documents take time to format/display after loading)
              */
             Idle.add (() => {
-                loading = false;
+                working = false;
                 loaded = true;
                 locked = false; // Assume writable until status checked
                 check_file_status.begin ();
@@ -577,14 +521,14 @@ namespace Scratch.Services {
             var old_uri = file.get_uri ();
             var old_locked = locked;
             locked = false;  // Can always try to save as a different file
-            loading = true; // Prevent premature status check when focus in after dialog closes
+            working = true; // Prevent premature status check when focus in after dialog closes
             var result = yield save_with_hold (true, true);
             if (!result) {
                 file = File.new_for_uri (old_uri);
                 locked = old_locked;
             }
 
-            loading = false;
+            working = false;
             yield check_file_status ();
             return result;
         }
@@ -1098,11 +1042,11 @@ namespace Scratch.Services {
             string unsaved_identifier = "* ";
 
             if (!val) {
-                if (!(unsaved_identifier in this.title)) {
-                    tab_name = unsaved_identifier + this.title;
+                if (!(unsaved_identifier in this.label)) {
+                    tab_name = unsaved_identifier + this.label;
                 }
             } else {
-                tab_name = this.title.replace (unsaved_identifier, "");
+                tab_name = this.label.replace (unsaved_identifier, "");
             }
         }
 
@@ -1197,47 +1141,47 @@ namespace Scratch.Services {
         }
 
         public void show_outline (bool show) {
-            // if (show && outline == null) {
-            //     switch (mime_type) {
-            //         case "text/x-vala":
-            //             outline = new ValaSymbolOutline (this);
-            //             break;
-            //         case "text/x-csrc":
-            //         case "text/x-chdr":
-            //         case "text/x-c++src":
-            //         case "text/x-c++hdr":
-            //             outline = new CtagsSymbolOutline (this);
-            //             break;
-            //     }
+            if (show && outline == null) {
+                switch (mime_type) {
+                    case "text/x-vala":
+                        outline = new ValaSymbolOutline (this);
+                        break;
+                    case "text/x-csrc":
+                    case "text/x-chdr":
+                    case "text/x-c++src":
+                    case "text/x-c++hdr":
+                        outline = new CtagsSymbolOutline (this);
+                        break;
+                }
 
-            //     if (outline != null) {
-            //         outline_widget_pane.pack2 (outline.get_widget (), false, false);
-            //         Idle.add (() => {
-            //             set_outline_width (doc_view.outline_width);
-            //             outline_widget_pane.notify["position"].connect (sync_outline_width);
-            //             outline.parse_symbols ();
-            //             return Source.REMOVE;
-            //         });
-            //     }
-            // } else if (!show && outline != null) {
-            //     outline_widget_pane.notify["position"].disconnect (sync_outline_width);
-            //     outline_widget_pane.get_child2 ().destroy ();
-            //     outline = null;
-            // }
+                if (outline != null) {
+                    outline_widget_pane.pack2 (outline.get_widget (), false, false);
+                    Idle.add (() => {
+                        set_outline_width (doc_view.outline_width);
+                        outline_widget_pane.notify["position"].connect (sync_outline_width);
+                        outline.parse_symbols ();
+                        return Source.REMOVE;
+                    });
+                }
+            } else if (!show && outline != null) {
+                outline_widget_pane.notify["position"].disconnect (sync_outline_width);
+                outline_widget_pane.get_child2 ().destroy ();
+                outline = null;
+            }
         }
 
         private void sync_outline_width () {
-            // var width = outline_widget_pane.get_allocated_width () - outline_widget_pane.position;
-            // if (width != doc_view.outline_width) {
-            //     doc_view.outline_width = width;
-            // }
+            var width = outline_widget_pane.get_allocated_width () - outline_widget_pane.position;
+            if (width != doc_view.outline_width) {
+                doc_view.outline_width = width;
+            }
         }
 
         public void set_outline_width (int width) {
-            // if (outline != null) {
-            //     var aw = outline_widget_pane.get_allocated_width ();
-            //     outline_widget_pane.position = (aw - width);
-            // }
+            if (outline != null) {
+                var aw = outline_widget_pane.get_allocated_width ();
+                outline_widget_pane.position = (aw - width);
+            }
         }
 
         private void unmounted_cb () {
