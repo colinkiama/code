@@ -24,6 +24,9 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         }
         set {
             _current_document = value;
+            if (tab_view.selected_page != value.tab) {
+                tab_view.selected_page = value.tab;
+            }
         }
     }
 
@@ -53,6 +56,11 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             hexpand = true,
             vexpand = true
         };
+
+        tab_view.notify["selected-page"].connect (() => {
+            current_document = search_for_document_in_tab (tab_view.selected_page);
+            print ("Selected page changed!\n");
+        });
 
 
         var new_tab_button = new Gtk.Button.from_icon_name ("list-add-symbolic") {
@@ -91,7 +99,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
                 doc.do_close.begin (false, (obj, res) => {
                     var should_close = doc.do_close.end (res);
                     if (should_close) {
-                        docs.remove (doc);
+                        before_doc_removed (doc);
                     }
 
                     tab_view.close_page_finish (tab, should_close);
@@ -211,7 +219,6 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             doc.open.begin (false, (obj, res) => {
                 doc.open.end (res);
                 if (focus && doc == current_document) {
-                    tab_view.selected_page = doc.tab;
                     doc.focus ();
                 }
 
@@ -233,12 +240,10 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         if (current_index < docs.length ()) {
             var next_doc = docs.nth_data (current_index++);
             current_document = next_doc;
-            tab_view.selected_page = next_doc.tab;
             next_doc.focus ();
         } else if (docs.length () > 0) {
             var next_doc = docs.nth_data (0);
             current_document = next_doc;
-            tab_view.selected_page = next_doc.tab;
             next_doc.focus ();
         }
     }
@@ -248,12 +253,10 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         if (current_index > 0) {
             var previous_doc = docs.nth_data (--current_index);
             current_document = previous_doc;
-            tab_view.selected_page = previous_doc.tab;
             previous_doc.focus ();
         } else if (docs.length () > 0) {
             var previous_doc = docs.nth_data (docs.length () - 1);
             current_document = previous_doc;
-            tab_view.selected_page = previous_doc.tab;
             previous_doc.focus ();
         }
     }
@@ -322,21 +325,12 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         tab_added (doc);
     }
 
-    private void on_doc_removed (Hdy.TabPage tab, int position) {
-        current_document = search_for_document_in_tab (tab_view.selected_page);
-        
-        var doc = search_for_document_in_tab (tab);
-        if (doc == null) {
-            return;
-        }
-
-        tab_removed (doc);
+    private void before_doc_removed (Services.Document doc) {
         docs.remove (doc);
+        tab_removed (doc);
         Scratch.Services.DocumentManager.get_instance ().remove_open_document (doc);
-
+        
         doc.source_view.focus_in_event.disconnect (on_focus_in_event);
-
-        request_placeholder_if_empty ();
 
         if (docs.length () > 0) {
             if (!doc.is_file_temporary) {
@@ -349,6 +343,10 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         if (!is_closing) {
             save_opened_files ();
         }
+    }
+
+    private void on_doc_removed (Hdy.TabPage tab, int position) {
+        request_placeholder_if_empty ();
     }
 
     private bool on_focus_in_event () {
