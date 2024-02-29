@@ -116,7 +116,6 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
 
         tab_view.page_detached.connect (on_doc_removed);
         tab_view.page_reordered.connect (on_doc_reordered);
-        // tab_moved.connect (on_doc_moved);
 
         notify["outline-visible"].connect (update_outline_visible);
         Scratch.saved_state.bind ("outline-width", this, "outline-width", DEFAULT);
