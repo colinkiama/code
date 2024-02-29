@@ -149,7 +149,7 @@ namespace Scratch {
             { ACTION_PREVIOUS_TAB, action_previous_tab },
             { ACTION_CLEAR_LINES, action_clear_lines },
             { ACTION_NEW_BRANCH, action_new_branch, "s" },
-            { ACTION_CLOSE_TAB, action_close_tab, "s"},
+            { ACTION_CLOSE_TAB, action_close_tab, "s" },
             { ACTION_HIDE_PROJECT_DOCS, action_hide_project_docs, "s"},
             { ACTION_CLOSE_PROJECT_DOCS, action_close_project_docs, "s"},
             { ACTION_RESTORE_PROJECT_DOCS, action_restore_project_docs, "s"}
@@ -206,6 +206,7 @@ namespace Scratch {
             action_accelerators.set (ACTION_TOGGLE_OUTLINE, "<Alt>backslash");
             action_accelerators.set (ACTION_NEXT_TAB, "<Control>Tab");
             action_accelerators.set (ACTION_NEXT_TAB, "<Control>Page_Down");
+            action_accelerators.set (ACTION_CLOSE_TAB + "::", "<Control>w");
             action_accelerators.set (ACTION_PREVIOUS_TAB, "<Control><Shift>Tab");
             action_accelerators.set (ACTION_PREVIOUS_TAB, "<Control>Page_Up");
             action_accelerators.set (ACTION_CLEAR_LINES, "<Control>K"); //Geany
@@ -1062,7 +1063,19 @@ namespace Scratch {
         }
 
         private void action_close_tab (SimpleAction action, Variant? param) {
-            var close_path = get_target_path_for_actions (param);
+            string close_path = "";
+            if (param != null) {
+                close_path = param.get_string ();
+            }
+
+            if (close_path == "") {
+                var doc = get_current_document ();
+                if (doc != null) {
+                    document_view.close_document (doc);
+                }
+                return;
+            }
+            
             unowned var docs = document_view.docs;
             docs.foreach ((doc) => {
                 if (doc.file.get_path () == close_path) {
