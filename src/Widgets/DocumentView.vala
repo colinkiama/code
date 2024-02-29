@@ -155,6 +155,18 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         tab_view.close_page (doc.tab);
     }
 
+    public void close_tabs_to_right () {
+        if (current_document != null) {
+            tab_view.close_pages_after (current_document.tab);
+        }
+    }
+
+    public void close_other_tabs () {
+        if (current_document != null) {
+            tab_view.close_pages_before (current_document.tab);
+        }
+    }
+
     public Services.Document search_for_document_in_tab (Hdy.TabPage tab) {
         unowned var current = docs;
 
@@ -328,6 +340,8 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         tab_menu.remove_all ();
 
         var close_tab_section = new Menu ();
+        close_tab_section.append (_("Close Tabs to the Right"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_TABS_TO_RIGHT);
+        close_tab_section.append (_("Close Other Tabs"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_OTHER_TABS);
         close_tab_section.append (_("Close Tab"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_TAB + "::");
 
         var open_tab_section = new Menu ();

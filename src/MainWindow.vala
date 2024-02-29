@@ -98,6 +98,8 @@ namespace Scratch {
         public const string ACTION_CLEAR_LINES = "action_clear_lines";
         public const string ACTION_NEW_BRANCH = "action_new_branch";
         public const string ACTION_CLOSE_TAB = "action_close_tab";
+        public const string ACTION_CLOSE_TABS_TO_RIGHT = "action_close_tabs_to_right";
+        public const string ACTION_CLOSE_OTHER_TABS = "action_close_other_tabs";
         public const string ACTION_CLOSE_PROJECT_DOCS = "action_close_project_docs";
         public const string ACTION_HIDE_PROJECT_DOCS = "action_hide_project_docs";
         public const string ACTION_RESTORE_PROJECT_DOCS = "action_restore_project_docs";
@@ -150,6 +152,8 @@ namespace Scratch {
             { ACTION_CLEAR_LINES, action_clear_lines },
             { ACTION_NEW_BRANCH, action_new_branch, "s" },
             { ACTION_CLOSE_TAB, action_close_tab, "s" },
+            { ACTION_CLOSE_TABS_TO_RIGHT, action_close_tabs_to_right },
+            { ACTION_CLOSE_OTHER_TABS, action_close_other_tabs },
             { ACTION_HIDE_PROJECT_DOCS, action_hide_project_docs, "s"},
             { ACTION_CLOSE_PROJECT_DOCS, action_close_project_docs, "s"},
             { ACTION_RESTORE_PROJECT_DOCS, action_restore_project_docs, "s"}
@@ -1082,6 +1086,14 @@ namespace Scratch {
                     document_view.close_document (doc);
                 }
             });
+        }
+
+        private void action_close_tabs_to_right () {
+            document_view.close_tabs_to_right ();
+        }
+
+        private void action_close_other_tabs () {
+            document_view.close_other_tabs ();
         }
 
         private void action_hide_project_docs (SimpleAction action, Variant? param) {
