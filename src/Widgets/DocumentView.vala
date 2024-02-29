@@ -77,7 +77,9 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             hexpand = true,
             vexpand = true
         };
-
+        
+        tab_view.menu_model = new GLib.Menu (); 
+        tab_view.setup_menu.connect (tab_view_setup_menu);
         tab_view.notify["selected-page"].connect (() => {
             current_document = search_for_document_in_tab (tab_view.selected_page);
         });
@@ -314,6 +316,25 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
 
     public new void focus () {
         current_document.focus ();
+    }
+
+    private void tab_view_setup_menu (Hdy.TabPage? page) {
+        if (page == null) {
+            return;
+        }
+
+
+        var tab_menu = (Menu) tab_view.menu_model;
+        tab_menu.remove_all ();
+
+        var close_tab_section = new Menu ();
+        close_tab_section.append (_("Close Tab"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_TAB + "::");
+
+        var open_tab_section = new Menu ();
+
+
+        tab_menu.append_section (null, close_tab_section);
+        tab_menu.append_section (null, open_tab_section);
     }
 
     private void insert_document (Scratch.Services.Document doc, int pos) {
