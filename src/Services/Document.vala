@@ -4,6 +4,7 @@
 
   Copyright (C) 2011-2012 Giulio Collura <random.cpp@gmail.com>
                 2013      Mario Guerriero <mario@elemnetaryos.org>
+                2024      Colin Kiama <colinkiama@gmail.com>
   This program is free software: you can redistribute it and/or modify it
   under the terms of the GNU Lesser General Public License version 3, as published
   by the Free Software Foundation.
