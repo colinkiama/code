@@ -71,6 +71,7 @@ namespace Scratch {
         public const string ACTION_SORT_LINES = "action_sort_lines";
         public const string ACTION_NEW_TAB = "action_new_tab";
         public const string ACTION_NEW_FROM_CLIPBOARD = "action_new_from_clipboard";
+        public const string ACTION_DUPLICATE_TAB = "action_duplicate_tab";
         public const string ACTION_PREFERENCES = "preferences";
         public const string ACTION_UNDO = "action_undo";
         public const string ACTION_REDO = "action_redo";
@@ -130,6 +131,7 @@ namespace Scratch {
             { ACTION_SORT_LINES, action_sort_lines },
             { ACTION_NEW_TAB, action_new_tab },
             { ACTION_NEW_FROM_CLIPBOARD, action_new_tab_from_clipboard },
+            { ACTION_DUPLICATE_TAB, action_duplicate_tab },
             { ACTION_PREFERENCES, action_preferences },
             { ACTION_UNDO, action_undo },
             { ACTION_REDO, action_redo },
@@ -1079,13 +1081,17 @@ namespace Scratch {
                 }
                 return;
             }
-            
+
             unowned var docs = document_view.docs;
             docs.foreach ((doc) => {
                 if (doc.file.get_path () == close_path) {
                     document_view.close_document (doc);
                 }
             });
+        }
+
+        private void action_duplicate_tab () {
+            document_view.duplicate_tab ();
         }
 
         private void action_close_tabs_to_right () {

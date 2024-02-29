@@ -77,8 +77,8 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             hexpand = true,
             vexpand = true
         };
-        
-        tab_view.menu_model = new GLib.Menu (); 
+
+        tab_view.menu_model = new GLib.Menu ();
         tab_view.setup_menu.connect (tab_view_setup_menu);
         tab_view.notify["selected-page"].connect (() => {
             current_document = search_for_document_in_tab (tab_view.selected_page);
@@ -167,6 +167,12 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         }
     }
 
+    public void duplicate_tab () {
+        if (current_document != null) {
+            new_document_from_clipboard (current_document.get_text ());
+        }
+    }
+
     public Services.Document search_for_document_in_tab (Hdy.TabPage tab) {
         unowned var current = docs;
 
@@ -190,8 +196,6 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
 
         return matching_document;
     }
-
-
 
     public void new_document () {
         var file = File.new_for_path (unsaved_file_path_builder ());
@@ -345,7 +349,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         close_tab_section.append (_("Close Tab"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_TAB + "::");
 
         var open_tab_section = new Menu ();
-
+        open_tab_section.append (_("Duplicate"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_DUPLICATE_TAB);
 
         tab_menu.append_section (null, close_tab_section);
         tab_menu.append_section (null, open_tab_section);
@@ -394,7 +398,7 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
         docs.remove (doc);
         tab_removed (doc);
         Scratch.Services.DocumentManager.get_instance ().remove_open_document (doc);
-        
+
         doc.source_view.focus_in_event.disconnect (on_focus_in_event);
 
         if (docs.length () > 0) {
@@ -467,8 +471,6 @@ public class Scratch.Widgets.DocumentView : Gtk.Box {
             if (current_document != null) {
                 file_uri = current_document.file.get_uri ();
             }
-
-            print ("Focused document uri to save: %s\n", file_uri);
 
             Scratch.settings.set_string ("focused-document", file_uri);
         }
