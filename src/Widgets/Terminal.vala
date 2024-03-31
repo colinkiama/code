@@ -36,26 +36,35 @@ public class Code.Terminal : Gtk.Box {
             GLib.Application.get_default ().activate_action (Scratch.MainWindow.ACTION_PREFIX + Scratch.MainWindow.ACTION_TOGGLE_TERMINAL, null);
         });
 
-        var copy = new Gtk.MenuItem.with_label (_("Copy"));
-        copy.activate.connect (() => {
-            terminal.copy_clipboard ();
-        });
+        var menu = new GLib.Menu ();
+        menu.append (_("Copy"), Scratch.MainWindow.ACTION_PREFIX + Scratch.MainWindow.ACTION_TERMINAL_COPY);
+        menu.append (_("Paste"), Scratch.MainWindow.ACTION_PREFIX + Scratch.MainWindow.ACTION_TERMINAL_PASTE);
 
-        var paste = new Gtk.MenuItem.with_label (_("Paste"));
-        paste.activate.connect (() => {
-            terminal.paste_clipboard ();
-        });
-
-        var menu = new Gtk.Menu ();
-        menu.append (copy);
-        menu.append (paste);
-        menu.show_all ();
+        var popover_menu = new Gtk.PopoverMenu ();
+        popover_menu.set_relative_to (terminal);
+        popover_menu.halign = Gtk.Align.START;
+        popover_menu.position = Gtk.PositionType.BOTTOM;
+        popover_menu.bind_model (menu, null);
 
         terminal.button_press_event.connect ((event) => {
             if (event.button == 3) {
-                menu.select_first (false);
-                menu.popup_at_pointer (event);
+                var display = Gdk.Display.get_default ();
+                var seat = display.get_default_seat ();
+                var mouse_device = seat.get_pointer ();
+
+                int x;
+                int y;
+                event.window.get_device_position (mouse_device, out x, out y, null);
+
+                var rect = Gdk.Rectangle () {
+                    x = (int) x,
+                    y = (int) y
+                };
+
+                popover_menu.pointing_to = rect;
+                popover_menu.popup ();
             }
+
             return false;
         });
 
@@ -72,6 +81,14 @@ public class Code.Terminal : Gtk.Box {
         });
 
         show_all ();
+    }
+
+    public void copy () {
+        terminal.copy_clipboard ();
+    }
+
+    public void paste () {
+        terminal.paste_clipboard ();
     }
 
     private void spawn_shell (string dir = GLib.Environment.get_current_dir ()) {

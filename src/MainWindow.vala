@@ -93,6 +93,8 @@ namespace Scratch {
         public const string ACTION_TOGGLE_OUTLINE = "action_toggle_outline";
         public const string ACTION_TOGGLE_TERMINAL = "action-toggle-terminal";
         public const string ACTION_OPEN_IN_TERMINAL = "action-open_in_terminal";
+        public const string ACTION_TERMINAL_COPY = "action_terminal_copy";
+        public const string ACTION_TERMINAL_PASTE = "action_terminal_paste";
         public const string ACTION_NEXT_TAB = "action_next_tab";
         public const string ACTION_PREVIOUS_TAB = "action_previous_tab";
         public const string ACTION_CLEAR_LINES = "action_clear_lines";
@@ -144,6 +146,8 @@ namespace Scratch {
             { ACTION_TOGGLE_SIDEBAR, action_toggle_sidebar, null, "true" },
             { ACTION_TOGGLE_TERMINAL, action_toggle_terminal, null, "false"},
             { ACTION_OPEN_IN_TERMINAL, action_open_in_terminal, "s"},
+            { ACTION_TERMINAL_COPY, action_terminal_copy_to_clipboard },
+            { ACTION_TERMINAL_PASTE, action_terminal_paste_from_clipboard },
             { ACTION_TOGGLE_OUTLINE, action_toggle_outline, null, "false" },
             { ACTION_NEXT_TAB, action_next_tab },
             { ACTION_PREVIOUS_TAB, action_previous_tab },
@@ -1300,6 +1304,14 @@ namespace Scratch {
             } else if (get_current_document () != null) {
                 get_current_document ().focus ();
             }
+        }
+
+        private void action_terminal_copy_to_clipboard () {
+            terminal.copy ();
+        }
+
+        private void action_terminal_paste_from_clipboard () {
+            terminal.paste ();
         }
 
         private void action_open_in_terminal (SimpleAction action, Variant? param) {
