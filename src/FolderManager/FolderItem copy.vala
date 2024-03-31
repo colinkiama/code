@@ -87,8 +87,82 @@ namespace Scratch.FolderManager {
             }
         }
 
-        public override GLib.Menu? get_context_menu () {
-            var menu = new GLib.Menu ();
+        public override Gtk.Menu? get_context_menu () {
+            var open_in_terminal_pane_item = new Gtk.MenuItem.with_label (_("Open in Terminal Pane")) {
+                action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_OPEN_IN_TERMINAL,
+                action_target = new Variant.string (file.path)
+            };
+
+            var contractor_menu = new Gtk.Menu ();
+
+            GLib.FileInfo info = null;
+            unowned string? file_type = null;
+
+            try {
+                info = file.file.query_info (GLib.FileAttribute.STANDARD_CONTENT_TYPE, GLib.FileQueryInfoFlags.NONE);
+                file_type = info.get_content_type ();
+            } catch (Error e) {
+                warning (e.message);
+            }
+
+            if (info != null) {
+                try {
+                    var contracts = Granite.Services.ContractorProxy.get_contracts_by_mime (file_type);
+                    foreach (var contract in contracts) {
+                        var menu_item = new ContractMenuItem (contract, file.file);
+                        contractor_menu.append (menu_item);
+                        menu_item.show_all ();
+                    }
+                } catch (Error e) {
+                    warning (e.message);
+                }
+            }
+
+            var contractor_item = new Gtk.MenuItem.with_label (_("Other Actions"));
+            contractor_item.submenu = contractor_menu;
+
+            var rename_menu_item = new Gtk.MenuItem.with_label (_("Rename"));
+            rename_menu_item.activate.connect (() => {
+                selectable = true;
+                if (view.start_editing_item (this)) {
+                    // Need to poll view as no signal emited when editing cancelled and need to set
+                    // selectable to false anyway.
+                    Timeout.add (200, () => {
+                        if (view.editing) {
+                            return Source.CONTINUE;
+                        } else {
+                            view.unselect_all ();
+                            // Must do this *after* unselecting all else sourcelist breaks
+                            selectable = false;
+                        }
+
+                        return Source.REMOVE;
+                    });
+                } else {
+                    debug ("Could not rename %s", file.path);
+                    selectable = false;
+                }
+            });
+
+            var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash"));
+            delete_item.activate.connect (trash);
+
+            var search_item = new Gtk.MenuItem.with_label (_("Find in Folder…")) {
+                action_name = "win.action_find_global",
+                action_target = new Variant.string (file.file.get_path ())
+            };
+
+            var menu = new Gtk.Menu ();
+            menu.append (open_in_terminal_pane_item);
+            menu.append (create_submenu_for_open_in (info, file_type));
+            menu.append (contractor_item);
+            menu.append (new Gtk.SeparatorMenuItem ());
+            menu.append (create_submenu_for_new ());
+            menu.append (rename_menu_item);
+            menu.append (delete_item);
+            menu.append (new Gtk.SeparatorMenuItem ());
+            menu.append (search_item);
+            menu.show_all ();
 
             return menu;
         }

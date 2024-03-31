@@ -115,8 +115,131 @@ namespace Scratch.FolderManager {
             }
         }
 
-        public override GLib.Menu? get_context_menu () {
-            var menu = new GLib.Menu ();
+        public override Gtk.Menu? get_context_menu () {
+            var open_in_terminal_pane_label = new Granite.AccelLabel.from_action_name (
+               _("Open in Terminal Pane"),
+                MainWindow.ACTION_PREFIX + MainWindow.ACTION_OPEN_IN_TERMINAL + "::"
+            );
+
+            var open_in_terminal_pane_item = new Gtk.MenuItem () {
+                action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_OPEN_IN_TERMINAL,
+                action_target = new Variant.string (Services.GitManager.get_instance ().get_default_build_dir (path))
+            };
+            open_in_terminal_pane_item.add (open_in_terminal_pane_label);
+
+            var close_folder_item = new Gtk.MenuItem.with_label (_("Close Folder"));
+            close_folder_item.activate.connect (() => {
+                closed ();
+            });
+
+            var close_all_except_item = new Gtk.MenuItem.with_label (_("Close Other Folders"));
+            close_all_except_item.activate.connect (() => { close_all_except (); });
+            close_all_except_item.sensitive = view.root.children.size > 1;
+
+            var n_open = Scratch.Services.DocumentManager.get_instance ().open_for_project (path);
+            var open_text = ngettext ("Close %u Open Document",
+                                      "Close %u Open Documents",
+                                      n_open).printf (n_open);
+
+            var close_accellabel = new Granite.AccelLabel.from_action_name (
+                open_text,
+                MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_PROJECT_DOCS + "::"
+            );
+            var close_item = new Gtk.MenuItem () {
+                action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_CLOSE_PROJECT_DOCS,
+                action_target = new Variant.string (file.file.get_path ())
+            };
+            close_item.add (close_accellabel);
+
+            var hide_text = ngettext ("Hide %u Open Document",
+                                      "Hide %u Open Documents",
+                                      n_open).printf (n_open);
+
+            var hide_accellabel = new Granite.AccelLabel.from_action_name (
+                hide_text,
+                MainWindow.ACTION_PREFIX + MainWindow.ACTION_HIDE_PROJECT_DOCS + "::"
+            );
+            var hide_item = new Gtk.MenuItem () {
+                action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_HIDE_PROJECT_DOCS,
+                action_target = new Variant.string (file.file.get_path ())
+            };
+            hide_item.add (hide_accellabel);
+
+            var n_restorable = Scratch.Services.DocumentManager.get_instance ().restorable_for_project (path);
+            var restore_text = ngettext ("Restore %u Hidden Document",
+                                         "Restore %u Hidden Documents",
+                                         n_restorable).printf (n_restorable);
+            var restore_accellabel = new Granite.AccelLabel.from_action_name (
+                restore_text,
+                MainWindow.ACTION_PREFIX + MainWindow.ACTION_RESTORE_PROJECT_DOCS + "::"
+            );
+            var restore_item = new Gtk.MenuItem () {
+                action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_RESTORE_PROJECT_DOCS,
+                action_target = new Variant.string (file.file.get_path ())
+            };
+            restore_item.add (restore_accellabel);
+
+            var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash"));
+            delete_item.activate.connect (() => {
+                closed ();
+                trash ();
+            });
+
+            var search_accellabel = new Granite.AccelLabel.from_action_name (
+                _("Find in Project…"),
+                MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL + "::"
+            );
+
+            var search_item = new Gtk.MenuItem () {
+                action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL,
+                action_target = new Variant.string (file.file.get_path ())
+            };
+            search_item.add (search_accellabel);
+
+            GLib.FileInfo info = null;
+            unowned string? file_type = null;
+
+            try {
+                info = file.file.query_info (GLib.FileAttribute.STANDARD_CONTENT_TYPE, GLib.FileQueryInfoFlags.NONE);
+                file_type = info.get_content_type ();
+            } catch (Error e) {
+                warning (e.message);
+            }
+
+            var menu = new Gtk.Menu ();
+            menu.append (open_in_terminal_pane_item);
+            menu.append (create_submenu_for_open_in (info, file_type));
+            menu.append (new Gtk.SeparatorMenuItem ());
+            menu.append (create_submenu_for_new ());
+
+            if (monitored_repo != null) {
+                var branch_menu = new ChangeBranchMenu (this) {
+                    sensitive = !monitored_repo.has_uncommitted
+                };
+                menu.append (branch_menu);
+            }
+
+            menu.append (new Gtk.SeparatorMenuItem ());
+            menu.append (close_folder_item);
+            menu.append (close_all_except_item);
+            menu.append (new Gtk.SeparatorMenuItem ());
+            if (n_restorable > 0) {
+                menu.append (restore_item);
+            }
+
+            if (n_open > 0) {
+                menu.append (hide_item);
+                menu.append (close_item);
+            }
+
+            if (n_restorable + n_open > 1) {
+                menu.append (new Gtk.SeparatorMenuItem ());
+            }
+
+            menu.append (delete_item);
+            menu.append (new Gtk.SeparatorMenuItem ());
+            menu.append (search_item);
+            menu.show_all ();
 
             return menu;
         }
