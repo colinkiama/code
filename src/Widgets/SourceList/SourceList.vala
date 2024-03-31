@@ -1722,7 +1722,6 @@ public class SourceList : Gtk.ScrolledWindow {
             has_tooltip = true;
 
             popover_menu = new Gtk.PopoverMenu () {
-                relative_to = this,
                 halign = Gtk.Align.START,
                 position = Gtk.PositionType.BOTTOM
             };
@@ -2420,6 +2419,7 @@ public class SourceList : Gtk.ScrolledWindow {
                         y = (int) y
                     };
 
+                    popover_menu.set_relative_to (this);
                     popover_menu.pointing_to = rect;
                     popover_menu.popup ();
 

@@ -31,7 +31,11 @@ namespace Scratch.FolderManager {
             var open_in_terminal_pane_item = new GLib.MenuItem (_("Open in Terminal Pane"), MainWindow.ACTION_PREFIX
                                                                 + MainWindow.ACTION_OPEN_IN_TERMINAL);
             open_in_terminal_pane_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_parent ().get_path ()));
-            
+
+            var new_window_menu_item = new GLib.MenuItem (_("New Window"), MainWindow.ACTION_PREFIX
+                                                          + MainWindow.ACTION_OPEN_IN_NEW_WINDOW);
+            new_window_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_path ()));
+
             var menu = new GLib.Menu ();
             menu.append_item (open_in_terminal_pane_item);
             return menu;
