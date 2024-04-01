@@ -180,4 +180,49 @@ namespace Scratch.Utils {
         return false;
     }
 
+    public GLib.Menu create_executable_app_items_for_file (GLib.File file, string file_type) {
+        List<AppInfo> external_apps = GLib.AppInfo.get_all_for_type (file_type);
+        string this_id = GLib.Application.get_default ().application_id + ".desktop";
+        var menu = new GLib.Menu ();
+
+        foreach (AppInfo app_info in external_apps) {
+            string app_id = app_info.get_id ();
+            if (app_id == this_id) {
+                continue;
+            }
+
+            var menu_item = new MenuItem (app_info.get_name (), 
+                                          MainWindow.ACTION_PREFIX
+                                          + MainWindow.ACTION_LAUNCH_APP_WITH_FILE_PATH);
+
+            menu_item.set_icon (app_info.get_icon ());
+            menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new GLib.Variant.array (GLib.VariantType.STRING,
+                                           { file.get_path (), app_id, file_type }));
+            
+            menu.append_item (menu_item);
+        }
+
+        return menu;
+    }
+
+    public void launch_app_with_file_path (string path, string app_id, string file_type) {
+        var file = GLib.File.new_for_path (path);
+        var file_list = new List<GLib.File> ();
+        file_list.append (file);
+
+        List<AppInfo> external_apps = GLib.AppInfo.get_all_for_type (file_type);
+        uint length = external_apps.length ();
+        for (uint i = 0; i < length; i++) {
+            AppInfo app_info = external_apps.nth (i).data;
+            if (app_info.get_id () == app_id) {
+                try {
+                    app_info.launch (file_list, null);
+                    print ("Launching app!\n");
+                } catch (Error e) {
+                    warning (e.message);
+                }
+                break;
+            }
+        }
+    }
 }

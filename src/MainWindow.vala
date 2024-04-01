@@ -102,6 +102,7 @@ namespace Scratch {
         public const string ACTION_HIDE_PROJECT_DOCS = "action_hide_project_docs";
         public const string ACTION_RESTORE_PROJECT_DOCS = "action_restore_project_docs";
         public const string ACTION_OPEN_IN_NEW_WINDOW = "action_open_in_new_window";
+        public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
 
         public static Gee.MultiMap<string, string> action_accelerators = new Gee.HashMultiMap<string, string> ();
         private static string base_title;
@@ -155,6 +156,7 @@ namespace Scratch {
             { ACTION_CLOSE_PROJECT_DOCS, action_close_project_docs, "s"},
             { ACTION_RESTORE_PROJECT_DOCS, action_restore_project_docs, "s"},
             { ACTION_OPEN_IN_NEW_WINDOW, action_open_in_new_window, "s" },
+            { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
         };
 
         public MainWindow (bool restore_docs) {
@@ -1000,6 +1002,26 @@ namespace Scratch {
             var doc = new Scratch.Services.Document (new_window.actions, file);
 
             new_window.open_document (doc, true);
+        }
+
+        private void action_launch_app_with_file_path (SimpleAction action, Variant? param) {
+            var params = param.get_strv ();
+            var path = params[0];
+            if (path == null || path == "") {
+                return;
+            }
+
+            var app_id = params[1];
+            if (app_id == null || app_id == "") {
+                return;
+            }
+
+            var file_type = params[2];
+            if (file_type == null || file_type == "") {
+                return;
+            }
+
+            Utils.launch_app_with_file_path (path, app_id, file_type);
         }
 
         private void action_collapse_all_folders () {

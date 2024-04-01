@@ -36,7 +36,22 @@ namespace Scratch.FolderManager {
                                                           + MainWindow.ACTION_OPEN_IN_NEW_WINDOW);
             new_window_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_path ()));
 
+            GLib.FileInfo info = null;
+
+            try {
+                info = file.file.query_info (GLib.FileAttribute.STANDARD_CONTENT_TYPE, 0);
+            } catch (Error e) {
+                warning (e.message);
+            }
+
+            var file_type = info.get_attribute_string (GLib.FileAttribute.STANDARD_CONTENT_TYPE);
+            var launch_app_action = Utils.action_from_group (MainWindow.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.toplevel_action_group as SimpleActionGroup) as SimpleAction;
+            launch_app_action.change_state (new GLib.Variant.string (file_type));
+
+            var open_in_menu = Utils.create_executable_app_items_for_file (file.file, file_type);
+
             var menu = new GLib.Menu ();
+            menu.append_submenu (_("Open In"), open_in_menu);
             menu.append_item (open_in_terminal_pane_item);
             return menu;
         }
