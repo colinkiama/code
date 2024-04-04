@@ -191,14 +191,14 @@ namespace Scratch.Utils {
                 continue;
             }
 
-            var menu_item = new MenuItem (app_info.get_name (), 
+            var menu_item = new MenuItem (app_info.get_name (),
                                           MainWindow.ACTION_PREFIX
                                           + MainWindow.ACTION_LAUNCH_APP_WITH_FILE_PATH);
 
             menu_item.set_icon (app_info.get_icon ());
             menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new GLib.Variant.array (GLib.VariantType.STRING,
                                            { file.get_path (), app_id, file_type }));
-            
+
             menu.append_item (menu_item);
         }
 

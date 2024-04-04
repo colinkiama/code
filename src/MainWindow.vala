@@ -103,6 +103,7 @@ namespace Scratch {
         public const string ACTION_RESTORE_PROJECT_DOCS = "action_restore_project_docs";
         public const string ACTION_OPEN_IN_NEW_WINDOW = "action_open_in_new_window";
         public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
+        public const string ACTION_RENAME_FILE = "action_rename_file";
 
         public static Gee.MultiMap<string, string> action_accelerators = new Gee.HashMultiMap<string, string> ();
         private static string base_title;
@@ -157,6 +158,7 @@ namespace Scratch {
             { ACTION_RESTORE_PROJECT_DOCS, action_restore_project_docs, "s"},
             { ACTION_OPEN_IN_NEW_WINDOW, action_open_in_new_window, "s" },
             { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
+            { ACTION_RENAME_FILE, action_rename_file, "s"},
         };
 
         public MainWindow (bool restore_docs) {
@@ -1022,6 +1024,16 @@ namespace Scratch {
             }
 
             Utils.launch_app_with_file_path (path, app_id, file_type);
+        }
+
+        private void action_rename_file (SimpleAction action, Variant? param) {
+            var path = param.get_string ();
+
+            if (path == null || path == "") {
+                return;
+            }
+
+            folder_manager_view.rename_file (path);
         }
 
         private void action_collapse_all_folders () {

@@ -2405,7 +2405,7 @@ public class SourceList : Gtk.ScrolledWindow {
                 var menu = item.get_context_menu ();
                 if (menu != null) {
                     popover_menu.bind_model (menu, null);
-                    
+
                     var display = Gdk.Display.get_default ();
                     var seat = display.get_default_seat ();
                     var mouse_device = seat.get_pointer ();

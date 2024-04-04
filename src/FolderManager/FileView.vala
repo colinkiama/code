@@ -246,6 +246,30 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         plugins.hook_folder_item_change (source, dest, event);
     }
 
+    public void rename_file (string path) {
+        this.select_path (path);
+        if (this.start_editing_item (selected)) {
+            ulong once = 0;
+            once = selected.edited.connect ((new_name) => {
+                selected.disconnect (once);
+                var new_path = Path.get_dirname (path) + Path.DIR_SEPARATOR_S + new_name;
+                this.toplevel_action_group.activate_action (MainWindow.ACTION_CLOSE_TAB, new Variant.string (path));
+                this.select (new_path);
+            });
+        }
+
+        // Handle cancelled rename (which does not produce signal)
+        Timeout.add (200, () => {
+            if (this.editing) {
+                return Source.CONTINUE;
+            } else {
+                // Avoid selected but unopened item if rename cancelled (they would not open if clicked on)
+                this.unselect_all ();
+                return Source.REMOVE;
+            }
+        });
+    }
+
     private void rename_items_with_same_name (Item item) {
         string item_name = item.file.name;
         foreach (var child in this.root.children) {
