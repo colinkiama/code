@@ -9,6 +9,7 @@ public class Code.Terminal : Gtk.Box {
     private const double MIN_SCALE = 0.2;
     private const string LEGACY_SETTINGS_SCHEMA = "org.pantheon.terminal.settings";
     private const string SETTINGS_SCHEMA = "io.elementary.terminal.settings";
+    private SimpleActionGroup top_level_action_group { get; private set; }
 
     private GLib.Pid child_pid;
     public Vte.Terminal terminal { get; construct; }
@@ -66,6 +67,18 @@ public class Code.Terminal : Gtk.Box {
             }
 
             return false;
+        });
+
+        realize.connect (() => {
+            top_level_action_group = get_action_group (Scratch.MainWindow.ACTION_GROUP) as SimpleActionGroup;
+            assert_nonnull (top_level_action_group);
+            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY, top_level_action_group) as SimpleAction;
+            copy_action.set_enabled (terminal.get_has_selection ());
+        });
+
+        terminal.selection_changed.connect (() => {
+            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY, top_level_action_group) as SimpleAction;
+            copy_action.set_enabled (terminal.get_has_selection ());
         });
 
         var settings = new Settings (Constants.PROJECT_NAME + ".saved-state");

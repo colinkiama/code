@@ -730,7 +730,6 @@ namespace Scratch {
             Utils.action_from_group (ACTION_REVERT, actions).set_enabled (val);
             search_bar.sensitive = val;
             toolbar.share_menu_button.sensitive = val;
-            
         }
 
         // Get current document
