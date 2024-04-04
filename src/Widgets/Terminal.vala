@@ -9,7 +9,8 @@ public class Code.Terminal : Gtk.Box {
     private const double MIN_SCALE = 0.2;
     private const string LEGACY_SETTINGS_SCHEMA = "org.pantheon.terminal.settings";
     private const string SETTINGS_SCHEMA = "io.elementary.terminal.settings";
-    private SimpleActionGroup top_level_action_group { get; private set; }
+    private SimpleActionGroup top_level_action_group;
+    private Gtk.Clipboard current_clipboard;
 
     private GLib.Pid child_pid;
     public Vte.Terminal terminal { get; construct; }
@@ -62,6 +63,10 @@ public class Code.Terminal : Gtk.Box {
                     y = (int) y
                 };
 
+                var paste_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_PASTE,
+                                                                    top_level_action_group) as SimpleAction;
+                paste_action.set_enabled (current_clipboard.wait_is_text_available ());
+
                 popover_menu.pointing_to = rect;
                 popover_menu.popup ();
             }
@@ -72,12 +77,16 @@ public class Code.Terminal : Gtk.Box {
         realize.connect (() => {
             top_level_action_group = get_action_group (Scratch.MainWindow.ACTION_GROUP) as SimpleActionGroup;
             assert_nonnull (top_level_action_group);
-            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY, top_level_action_group) as SimpleAction;
+            current_clipboard = terminal.get_clipboard (Gdk.SELECTION_CLIPBOARD);
+
+            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY,
+                                                               top_level_action_group) as SimpleAction;
             copy_action.set_enabled (terminal.get_has_selection ());
         });
 
         terminal.selection_changed.connect (() => {
-            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY, top_level_action_group) as SimpleAction;
+            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY,
+                                                               top_level_action_group) as SimpleAction;
             copy_action.set_enabled (terminal.get_has_selection ());
         });
 
