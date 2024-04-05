@@ -48,11 +48,14 @@ namespace Scratch.FolderManager {
             var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.actions) as SimpleAction;
             launch_app_action.change_state (new GLib.Variant.string (file_type));
 
-            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FILE);
+            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME);
             rename_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
 
-            var rename_file_action = Utils.action_from_group (FileView.ACTION_RENAME_FILE, view.actions) as SimpleAction;
+            var rename_file_action = Utils.action_from_group (FileView.ACTION_RENAME, view.actions) as SimpleAction;
             rename_file_action.set_enabled (view.rename_request (file));
+
+            var delete_menu_item = new GLib.MenuItem (_("Delete"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
+            delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
 
             var open_in_menu = Utils.create_executable_app_items_for_file (file.file, file_type);
 
@@ -62,6 +65,7 @@ namespace Scratch.FolderManager {
 
             var direct_actions_menu_section = new GLib.Menu ();
             direct_actions_menu_section.append_item (rename_menu_item);
+            direct_actions_menu_section.append_item (delete_menu_item);
 
             var menu = new GLib.Menu ();
             menu.append_section (null, external_actions_menu_section);

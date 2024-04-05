@@ -25,14 +25,16 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_GROUP = "file_view";
     public const string ACTION_PREFIX =  ACTION_GROUP + ".";
     public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
-    public const string ACTION_RENAME_FILE = "action_rename_file";
+    public const string ACTION_RENAME = "action_rename";
+    public const string ACTION_DELETE = "action_delete";
 
     private GLib.Settings settings;
     private Scratch.Services.GitManager git_manager;
     private Scratch.Services.PluginsManager plugins;
     private const ActionEntry[] ACTION_ENTRIES = {
         { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
-        { ACTION_RENAME_FILE, action_rename_file, "s"},
+        { ACTION_RENAME, action_rename, "s" },
+        { ACTION_DELETE, action_delete, "s" },
     };
 
     public SimpleActionGroup actions { get; construct; }
@@ -324,7 +326,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         Utils.launch_app_with_file_path (path, app_id, file_type);
     }
 
-    private void action_rename_file (SimpleAction action, Variant? param) {
+    private void action_rename (SimpleAction action, Variant? param) {
         var path = param.get_string ();
 
         if (path == null || path == "") {
@@ -332,6 +334,20 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         }
 
         rename_file (path);
+    }
+
+     private void action_delete (SimpleAction action, Variant? param) {
+        var path = param.get_string ();
+
+        if (path == null || path == "") {
+            return;
+        }
+
+        var item = find_path (root, path);
+        if (item != null) {
+            var item_to_delete = item as Scratch.FolderManager.Item;
+            item_to_delete.trash ();
+        }
     }
 
     private void add_folder (File folder, bool expand) {
