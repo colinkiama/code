@@ -5,15 +5,22 @@
  */
 
 public class Code.Terminal : Gtk.Box {
+    public const string ACTION_GROUP = "term";
+    public const string ACTION_PREFIX = ACTION_GROUP + ".";
+    public const string ACTION_COPY = "action_copy";
+    public const string ACTION_PASTE = "action_paste";
+
     private const double MAX_SCALE = 5.0;
     private const double MIN_SCALE = 0.2;
     private const string LEGACY_SETTINGS_SCHEMA = "org.pantheon.terminal.settings";
     private const string SETTINGS_SCHEMA = "io.elementary.terminal.settings";
-    private SimpleActionGroup top_level_action_group;
-    private Gtk.Clipboard current_clipboard;
+
+    public Vte.Terminal terminal { get; construct; }
 
     private GLib.Pid child_pid;
-    public Vte.Terminal terminal { get; construct; }
+    private SimpleAction copy_action;
+    private SimpleAction paste_action;
+    private Gtk.Clipboard current_clipboard;
 
     construct {
         terminal = new Vte.Terminal () {
@@ -38,9 +45,21 @@ public class Code.Terminal : Gtk.Box {
             GLib.Application.get_default ().activate_action (Scratch.MainWindow.ACTION_PREFIX + Scratch.MainWindow.ACTION_TOGGLE_TERMINAL, null);
         });
 
+        copy_action = new SimpleAction (ACTION_COPY, null);
+        copy_action.set_enabled (false);
+        copy_action.activate.connect (() => copy ());
+
+        paste_action = new SimpleAction (ACTION_PASTE, null);
+        paste_action.activate.connect (() => paste ());
+
+        var actions = new SimpleActionGroup ();
+        actions.add_action (copy_action);
+        actions.add_action (paste_action);
+        insert_action_group (ACTION_GROUP, actions);
+
         var menu = new GLib.Menu ();
-        menu.append (_("Copy"), Scratch.MainWindow.ACTION_PREFIX + Scratch.MainWindow.ACTION_TERMINAL_COPY);
-        menu.append (_("Paste"), Scratch.MainWindow.ACTION_PREFIX + Scratch.MainWindow.ACTION_TERMINAL_PASTE);
+        menu.append (_("Copy"), ACTION_PREFIX + ACTION_COPY);
+        menu.append (_("Paste"), ACTION_PREFIX + ACTION_PASTE);
 
         var popover_menu = new Gtk.PopoverMenu ();
         popover_menu.set_relative_to (terminal);
@@ -63,8 +82,6 @@ public class Code.Terminal : Gtk.Box {
                     y = (int) y
                 };
 
-                var paste_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_PASTE,
-                                                                    top_level_action_group) as SimpleAction;
                 paste_action.set_enabled (current_clipboard.wait_is_text_available ());
 
                 popover_menu.pointing_to = rect;
@@ -75,18 +92,11 @@ public class Code.Terminal : Gtk.Box {
         });
 
         realize.connect (() => {
-            top_level_action_group = get_action_group (Scratch.MainWindow.ACTION_GROUP) as SimpleActionGroup;
-            assert_nonnull (top_level_action_group);
             current_clipboard = terminal.get_clipboard (Gdk.SELECTION_CLIPBOARD);
-
-            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY,
-                                                               top_level_action_group) as SimpleAction;
             copy_action.set_enabled (terminal.get_has_selection ());
         });
 
         terminal.selection_changed.connect (() => {
-            var copy_action = Scratch.Utils.action_from_group (Scratch.MainWindow.ACTION_TERMINAL_COPY,
-                                                               top_level_action_group) as SimpleAction;
             copy_action.set_enabled (terminal.get_has_selection ());
         });
 
