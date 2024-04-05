@@ -16,6 +16,7 @@ public class Code.Terminal : Gtk.Box {
     private const string SETTINGS_SCHEMA = "io.elementary.terminal.settings";
 
     public Vte.Terminal terminal { get; construct; }
+    public SimpleActionGroup actions { get; }
 
     private GLib.Pid child_pid;
     private SimpleAction copy_action;
@@ -52,7 +53,7 @@ public class Code.Terminal : Gtk.Box {
         paste_action = new SimpleAction (ACTION_PASTE, null);
         paste_action.activate.connect (() => paste ());
 
-        var actions = new SimpleActionGroup ();
+        actions = new SimpleActionGroup ();
         actions.add_action (copy_action);
         actions.add_action (paste_action);
         insert_action_group (ACTION_GROUP, actions);
