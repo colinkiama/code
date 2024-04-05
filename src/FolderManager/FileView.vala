@@ -22,11 +22,21 @@
  * SourceList that displays folders and their contents.
  */
 public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.PaneSwitcher {
+    public const string ACTION_GROUP = "file_view";
+    public const string ACTION_PREFIX =  ACTION_GROUP + ".";
+    public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
+    public const string ACTION_RENAME_FILE = "action_rename_file";
+
     private GLib.Settings settings;
     private Scratch.Services.GitManager git_manager;
-
-    public ActionGroup toplevel_action_group { get; private set; }
     private Scratch.Services.PluginsManager plugins;
+    private const ActionEntry[] ACTION_ENTRIES = {
+        { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
+        { ACTION_RENAME_FILE, action_rename_file, "s"},
+    };
+
+    public SimpleActionGroup actions { get; construct; }
+    public ActionGroup toplevel_action_group { get; private set; }
 
     public signal void select (string file);
     public signal bool rename_request (File file);
@@ -53,6 +63,9 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         settings = new GLib.Settings ("io.elementary.code.folder-manager");
 
         git_manager = Scratch.Services.GitManager.get_instance ();
+
+        actions.add_action_entries (ACTION_ENTRIES, this);
+        insert_action_group (ACTION_GROUP, actions);
 
         realize.connect (() => {
             toplevel_action_group = get_action_group (MainWindow.ACTION_GROUP);
@@ -288,6 +301,36 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
         }
         item.name = item_name;
+    }
+
+    private void action_launch_app_with_file_path (SimpleAction action, Variant? param) {
+        var params = param.get_strv ();
+        var path = params[0];
+        if (path == null || path == "") {
+            return;
+        }
+
+        var app_id = params[1];
+        if (app_id == null || app_id == "") {
+            return;
+        }
+
+        var file_type = params[2];
+        if (file_type == null || file_type == "") {
+            return;
+        }
+
+        Utils.launch_app_with_file_path (path, app_id, file_type);
+    }
+
+    private void action_rename_file (SimpleAction action, Variant? param) {
+        var path = param.get_string ();
+
+        if (path == null || path == "") {
+            return;
+        }
+
+        folder_manager_view.rename_file (path);
     }
 
     private void add_folder (File folder, bool expand) {
