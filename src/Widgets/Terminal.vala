@@ -16,7 +16,7 @@ public class Code.Terminal : Gtk.Box {
     private const string SETTINGS_SCHEMA = "io.elementary.terminal.settings";
 
     public Vte.Terminal terminal { get; construct; }
-    public SimpleActionGroup actions { get; }
+    public SimpleActionGroup actions { get; construct; }
 
     private GLib.Pid child_pid;
     private SimpleAction copy_action;
