@@ -64,6 +64,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
         git_manager = Scratch.Services.GitManager.get_instance ();
 
+        actions = new SimpleActionGroup ();
         actions.add_action_entries (ACTION_ENTRIES, this);
         insert_action_group (ACTION_GROUP, actions);
 
@@ -330,7 +331,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
             return;
         }
 
-        folder_manager_view.rename_file (path);
+        rename_file (path);
     }
 
     private void add_folder (File folder, bool expand) {
