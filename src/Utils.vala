@@ -205,6 +205,18 @@ namespace Scratch.Utils {
         return menu;
     }
 
+
+    public void launch_app_with_file (AppInfo app_info, GLib.File file) {
+        var file_list = new List<GLib.File> ();
+        file_list.append (file);
+
+        try {
+            app_info.launch (file_list, null);
+        } catch (Error e) {
+            warning (e.message);
+        }
+    }
+
     public void launch_app_with_file_path (string path, string app_id, string file_type) {
         var file = GLib.File.new_for_path (path);
         var file_list = new List<GLib.File> ();

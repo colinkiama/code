@@ -25,6 +25,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_GROUP = "file_view";
     public const string ACTION_PREFIX = ACTION_GROUP + ".";
     public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
+    public const string ACTION_SHOW_APP_CHOOSER = "action_show_app_chooser";
     public const string ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH = "action_execute_contract_with_file_path";
     public const string ACTION_RENAME = "action_rename";
     public const string ACTION_DELETE = "action_delete";
@@ -34,6 +35,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     private Scratch.Services.PluginsManager plugins;
     private const ActionEntry[] ACTION_ENTRIES = {
         { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
+        { ACTION_SHOW_APP_CHOOSER, action_show_app_chooser, "s" },
         { ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH, action_execute_contract_with_file_path, "as" },
         { ACTION_RENAME, action_rename, "s" },
         { ACTION_DELETE, action_delete, "s" },
@@ -328,6 +330,29 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         Utils.launch_app_with_file_path (path, app_id, file_type);
     }
 
+    private void action_show_app_chooser (SimpleAction action, Variant? param) {
+        var path = param.get_string ();
+
+        if (path == null || path == "") {
+            return;
+        }
+
+        show_app_chooser (GLib.File.new_for_path (path));
+    }
+
+    public void show_app_chooser (GLib.File file) {
+        var dialog = new Gtk.AppChooserDialog (new Gtk.Window (), Gtk.DialogFlags.MODAL, file);
+        dialog.deletable = false;
+
+        if (dialog.run () == Gtk.ResponseType.OK) {
+            var app_info = dialog.get_app_info ();
+            if (app_info != null) {
+                Utils.launch_app_with_file (app_info, file);
+            }
+        }
+
+        dialog.destroy ();
+    }
 
     private void action_execute_contract_with_file_path (SimpleAction action, Variant? param) {
         var params = param.get_strv ();
