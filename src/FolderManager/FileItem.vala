@@ -33,7 +33,7 @@ namespace Scratch.FolderManager {
             open_in_terminal_pane_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_parent ().get_path ()));
 
             var new_window_menu_item = new GLib.MenuItem (_("New Window"), MainWindow.ACTION_PREFIX
-                                                          + MainWindow.ACTION_OPEN_IN_NEW_WINDOW);
+                                                      + MainWindow.ACTION_OPEN_IN_NEW_WINDOW);
             new_window_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_path ()));
 
             GLib.FileInfo info = null;
@@ -57,12 +57,19 @@ namespace Scratch.FolderManager {
             var delete_menu_item = new GLib.MenuItem (_("Delete"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
             delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
 
-            var open_in_menu = Utils.create_executable_app_items_for_file (file.file, file_type);
-            var open_in_extra_section = new GLib.Menu (); 
-            var open_in_other_menu_item = new GLib.MenuItem (_("Other Application..."), FileView.ACTION_PREFIX + FileView.ACTION_SHOW_APP_CHOOSER);
-            open_in_other_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+            var open_in_menu = new GLib.Menu ();
+            var open_in_top_section = new GLib.Menu ();
+            open_in_top_section.append_item (new_window_menu_item);
 
+            var open_in_app_section = Utils.create_executable_app_items_for_file (file.file, file_type);
+            
+            var open_in_extra_section = new GLib.Menu ();
+            var open_in_other_menu_item = new GLib.MenuItem (_("Other Application…"), FileView.ACTION_PREFIX + FileView.ACTION_SHOW_APP_CHOOSER);
+            open_in_other_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
             open_in_extra_section.append_item (open_in_other_menu_item);
+            
+            open_in_menu.append_section (null, open_in_top_section);
+            open_in_menu.append_section (null, open_in_app_section);
             open_in_menu.append_section (null, open_in_extra_section);
 
             var contractor_submenu = Utils.create_contract_items_for_file (file.file, file_type);
