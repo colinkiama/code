@@ -23,8 +23,9 @@
  */
 public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.PaneSwitcher {
     public const string ACTION_GROUP = "file_view";
-    public const string ACTION_PREFIX =  ACTION_GROUP + ".";
+    public const string ACTION_PREFIX = ACTION_GROUP + ".";
     public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
+    public const string ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH = "action_execute_contract_with_file_path";
     public const string ACTION_RENAME = "action_rename";
     public const string ACTION_DELETE = "action_delete";
 
@@ -33,6 +34,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     private Scratch.Services.PluginsManager plugins;
     private const ActionEntry[] ACTION_ENTRIES = {
         { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
+        { ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH, action_execute_contract_with_file_path, "as" },
         { ACTION_RENAME, action_rename, "s" },
         { ACTION_DELETE, action_delete, "s" },
     };
@@ -324,6 +326,27 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         }
 
         Utils.launch_app_with_file_path (path, app_id, file_type);
+    }
+
+
+    private void action_execute_contract_with_file_path (SimpleAction action, Variant? param) {
+        var params = param.get_strv ();
+        var path = params[0];
+        if (path == null || path == "") {
+            return;
+        }
+
+        var contract_name = params[1];
+        if (contract_name == null || contract_name == "") {
+            return;
+        }
+
+        var file_type = params[2];
+        if (file_type == null || file_type == "") {
+            return;
+        }
+
+        Utils.execute_contract_with_file_path (path, contract_name, file_type);
     }
 
     private void action_rename (SimpleAction action, Variant? param) {

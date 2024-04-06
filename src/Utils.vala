@@ -225,4 +225,46 @@ namespace Scratch.Utils {
             }
         }
     }
+
+    public GLib.Menu create_contract_items_for_file (GLib.File file, string file_type) {
+        var menu = new GLib.Menu ();
+
+        try {
+            var contracts = Granite.Services.ContractorProxy.get_contracts_by_mime (file_type);
+            foreach (var contract in contracts) {
+                string contract_name = contract.get_display_name ();
+                var menu_item = new MenuItem (contract_name,
+                Scratch.FolderManager.FileView.ACTION_PREFIX
+                + Scratch.FolderManager.FileView.ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH);
+
+                menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new GLib.Variant.array (GLib.VariantType.STRING,
+                    { file.get_path (), contract_name, file_type }));
+
+                menu.append_item (menu_item);
+            }
+        } catch (Error e) {
+            warning (e.message);
+        }
+
+        return menu;
+    }
+
+
+    public void execute_contract_with_file_path (string path, string contract_name, string file_type) {
+        var file = GLib.File.new_for_path (path);
+
+        try {
+            var contracts = Granite.Services.ContractorProxy.get_contracts_by_mime (file_type);
+            int length = contracts.size;
+            for (int i = 0; i < length; i++) {
+                var contract = contracts[i];
+                if (contract.get_display_name () == contract_name) {
+                    contract.execute_with_file (file);
+                    break;
+                }
+            }
+        } catch (Error e) {
+            warning (e.message);
+        }
+    }
 }

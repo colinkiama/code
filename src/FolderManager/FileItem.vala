@@ -58,9 +58,14 @@ namespace Scratch.FolderManager {
             delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
 
             var open_in_menu = Utils.create_executable_app_items_for_file (file.file, file_type);
+            var contractor_submenu = Utils.create_contract_items_for_file (file.file, file_type);
 
             var external_actions_menu_section = new GLib.Menu ();
             external_actions_menu_section.append_submenu (_("Open In"), open_in_menu);
+            if (contractor_submenu.get_n_items () > 0) {
+                external_actions_menu_section.append_submenu (_("Other Actions"), contractor_submenu);
+            }
+
             external_actions_menu_section.append_item (open_in_terminal_pane_item);
 
             var direct_actions_menu_section = new GLib.Menu ();
