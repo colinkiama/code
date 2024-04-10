@@ -310,6 +310,14 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         item.name = item_name;
     }
 
+    private void add_new_folder (SimpleAction action, Variant? param) {
+        // Using "path" of parent folder from params, call `on_add_new (true)` on `FolderItem`
+    }
+
+    private void add_new_file (SimpleAction action, Variant? param) {
+        // Using "path" of parent folder from params, call `on_add_new (false)` on `FolderItem`
+    }
+
     private void action_launch_app_with_file_path (SimpleAction action, Variant? param) {
         var params = param.get_strv ();
         var path = params[0];

@@ -88,10 +88,64 @@ namespace Scratch.FolderManager {
         }
 
         public override GLib.Menu? get_context_menu () {
-            var menu = new GLib.Menu ();
+            var open_in_terminal_pane_item = new GLib.MenuItem (_("Open in Terminal Pane"), MainWindow.ACTION_PREFIX
+                                                                + MainWindow.ACTION_OPEN_IN_TERMINAL);
+            open_in_terminal_pane_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_path ()));
 
+            GLib.FileInfo info = null;
+
+            try {
+                info = file.file.query_info (GLib.FileAttribute.STANDARD_CONTENT_TYPE, 0);
+            } catch (Error e) {
+                warning (e.message);
+            }
+
+            var file_type = info.get_attribute_string (GLib.FileAttribute.STANDARD_CONTENT_TYPE) ?? "inode/directory";
+            var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.actions) as SimpleAction;
+            launch_app_action.change_state (new GLib.Variant.string (file_type));
+
+            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME);
+            rename_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+
+            var rename_file_action = Utils.action_from_group (FileView.ACTION_RENAME, view.actions) as SimpleAction;
+            rename_file_action.set_enabled (view.rename_request (file));
+
+            var delete_menu_item = new GLib.MenuItem (_("Move to Trash"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
+            delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+
+            var open_in_menu = new GLib.Menu ();
+            var open_in_top_section = new GLib.Menu ();
+
+            var open_in_app_section = Utils.create_executable_app_items_for_file (file.file, file_type);
+
+            var open_in_extra_section = new GLib.Menu ();
+            var open_in_other_menu_item = new GLib.MenuItem (_("Other Application…"), FileView.ACTION_PREFIX + FileView.ACTION_SHOW_APP_CHOOSER);
+            open_in_other_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+            open_in_extra_section.append_item (open_in_other_menu_item);
+
+            open_in_menu.append_section (null, open_in_top_section);
+            open_in_menu.append_section (null, open_in_app_section);
+            open_in_menu.append_section (null, open_in_extra_section);
+
+            var contractor_submenu = Utils.create_contract_items_for_file (file.file, file_type);
+
+            var external_actions_menu_section = new GLib.Menu ();
+            external_actions_menu_section.append_item (open_in_terminal_pane_item);
+            external_actions_menu_section.append_submenu (_("Open In"), open_in_menu);
+            if (contractor_submenu.get_n_items () > 0) {
+                external_actions_menu_section.append_submenu (_("Other Actions"), contractor_submenu);
+            }
+
+            var direct_actions_menu_section = new GLib.Menu ();
+            direct_actions_menu_section.append_item (rename_menu_item);
+            direct_actions_menu_section.append_item (delete_menu_item);
+
+            var menu = new GLib.Menu ();
+            menu.append_section (null, external_actions_menu_section);
+            menu.append_section (null, direct_actions_menu_section);
             return menu;
         }
+
 
         protected Gtk.MenuItem create_submenu_for_open_in (GLib.FileInfo? info, string? file_type) {
             var other_menuitem = new Gtk.MenuItem.with_label (_("Other Application…"));
@@ -140,22 +194,22 @@ namespace Scratch.FolderManager {
             return open_in_item;
         }
 
-        protected Gtk.MenuItem create_submenu_for_new () {
-            var new_folder_item = new Gtk.MenuItem.with_label (_("Folder"));
-            new_folder_item.activate.connect (() => on_add_new (true));
+        // protected GLib.Menu create_submenu_for_new () {
+        //     var new_folder_item = new Gtk.MenuItem.with_label (_("Folder"));
+        //     new_folder_item.activate.connect (() => on_add_new (true));
 
-            var new_file_item = new Gtk.MenuItem.with_label (_("Empty File"));
-            new_file_item.activate.connect (() => on_add_new (false));
+        //     var new_file_item = new Gtk.MenuItem.with_label (_("Empty File"));
+        //     new_file_item.activate.connect (() => on_add_new (false));
 
-            var new_menu = new Gtk.Menu ();
-            new_menu.append (new_folder_item);
-            new_menu.append (new_file_item);
+        //     var new_menu = new Gtk.Menu ();
+        //     new_menu.append (new_folder_item);
+        //     new_menu.append (new_file_item);
 
-            var new_item = new Gtk.MenuItem.with_label (_("New"));
-            new_item.set_submenu (new_menu);
+        //     var new_item = new Gtk.MenuItem.with_label (_("New"));
+        //     new_item.set_submenu (new_menu);
 
-            return new_item;
-        }
+        //     return new_item;
+        // }
 
         public void remove_all_badges () {
             foreach (var child in children) {
