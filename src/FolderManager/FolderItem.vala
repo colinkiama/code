@@ -141,9 +141,16 @@ namespace Scratch.FolderManager {
             direct_actions_menu_section.append_item (rename_menu_item);
             direct_actions_menu_section.append_item (delete_menu_item);
 
+            var search_menu_item = new GLib.MenuItem (_("Find in Folder…"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL);
+            search_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.file.get_path ());
+
+            var search_menu_section = new GLib.Menu ();
+            search_menu_section.append_item (search_menu_item);
+
             var menu = new GLib.Menu ();
             menu.append_section (null, external_actions_menu_section);
             menu.append_section (null, direct_actions_menu_section);
+            menu.append_section (null, search_menu_section);
             return menu;
         }
 
@@ -196,21 +203,6 @@ namespace Scratch.FolderManager {
         }
 
         protected GLib.Menu create_submenu_for_new () {
-        //     var new_folder_item = new Gtk.MenuItem.with_label (_("Folder"));
-        //     new_folder_item.activate.connect (() => on_add_new (true));
-
-        //     var new_file_item = new Gtk.MenuItem.with_label (_("Empty File"));
-        //     new_file_item.activate.connect (() => on_add_new (false));
-
-        //     var new_menu = new Gtk.Menu ();
-        //     new_menu.append (new_folder_item);
-        //     new_menu.append (new_file_item);
-
-        //     var new_item = new Gtk.MenuItem.with_label (_("New"));
-        //     new_item.set_submenu (new_menu);
-
-        //     return new_item;
-
             var new_folder_item = new GLib.MenuItem (_("Folder"), FileView.ACTION_PREFIX + FileView.ACTION_NEW_FOLDER);
             new_folder_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.file.get_path ());
 
