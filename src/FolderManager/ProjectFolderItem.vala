@@ -175,28 +175,6 @@ namespace Scratch.FolderManager {
             return menu;
         }
 
-        private void handle_rename_action () {
-            selectable = true;
-            if (view.start_editing_item (this)) {
-                // Need to poll view as no signal emited when editing cancelled and need to set
-                // selectable to false anyway.
-                Timeout.add (200, () => {
-                    if (view.editing) {
-                        return Source.CONTINUE;
-                    } else {
-                        view.unselect_all ();
-                        // Must do this *after* unselecting all else sourcelist breaks
-                        selectable = false;
-                    }
-
-                    return Source.REMOVE;
-                });
-            } else {
-                debug ("Could not rename %s", file.path);
-                selectable = false;
-            }
-        }
-
         public void update_item_status (FolderItem? start_folder) {
             if (monitored_repo == null) {
                 debug ("Ignore non-git folders");
