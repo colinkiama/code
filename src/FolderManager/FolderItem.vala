@@ -151,7 +151,6 @@ namespace Scratch.FolderManager {
             return menu;
         }
 
-
         protected Gtk.MenuItem create_submenu_for_open_in (GLib.FileInfo? info, string? file_type) {
             var other_menuitem = new Gtk.MenuItem.with_label (_("Other Application…"));
             other_menuitem.activate.connect (() => show_app_chooser (file));
@@ -437,7 +436,7 @@ namespace Scratch.FolderManager {
                 debug ("Could not rename %s", file.path);
                 selectable = false;
             }
-    }
+        }
     }
 
     internal class RenameItem : Code.Widgets.SourceList.Item {
