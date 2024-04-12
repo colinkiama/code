@@ -29,6 +29,8 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH = "action_execute_contract_with_file_path";
     public const string ACTION_RENAME = "action_rename";
     public const string ACTION_DELETE = "action_delete";
+    public const string ACTION_NEW_FILE = "action_new_file";
+    public const string ACTION_NEW_FOLDER = "action_new_folder";
 
     private GLib.Settings settings;
     private Scratch.Services.GitManager git_manager;
@@ -39,6 +41,8 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         { ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH, action_execute_contract_with_file_path, "as" },
         { ACTION_RENAME, action_rename, "s" },
         { ACTION_DELETE, action_delete, "s" },
+        { ACTION_NEW_FILE, add_new_file, "s" },
+        { ACTION_NEW_FOLDER, add_new_folder, "s"}
     };
 
     public SimpleActionGroup actions { get; construct; }
@@ -312,10 +316,34 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
     private void add_new_folder (SimpleAction action, Variant? param) {
         // Using "path" of parent folder from params, call `on_add_new (true)` on `FolderItem`
+        var path = param.get_string ();
+
+        if (path == null || path == "") {
+            return;
+        }
+
+        var folder = find_path (root, path) as FolderItem;
+        if (folder == null) {
+            return;
+        }
+
+        folder.on_add_new (true);
     }
 
     private void add_new_file (SimpleAction action, Variant? param) {
         // Using "path" of parent folder from params, call `on_add_new (false)` on `FolderItem`
+        var path = param.get_string ();
+
+        if (path == null || path == "") {
+            return;
+        }
+
+        var folder = find_path (root, path) as FolderItem;
+        if (folder == null) {
+            return;
+        }
+
+        folder.on_add_new (false);
     }
 
     private void action_launch_app_with_file_path (SimpleAction action, Variant? param) {

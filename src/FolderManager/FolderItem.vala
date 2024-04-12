@@ -137,6 +137,7 @@ namespace Scratch.FolderManager {
             }
 
             var direct_actions_menu_section = new GLib.Menu ();
+            direct_actions_menu_section.append_submenu (_("New"), create_submenu_for_new ());
             direct_actions_menu_section.append_item (rename_menu_item);
             direct_actions_menu_section.append_item (delete_menu_item);
 
@@ -194,7 +195,7 @@ namespace Scratch.FolderManager {
             return open_in_item;
         }
 
-        // protected GLib.Menu create_submenu_for_new () {
+        protected GLib.Menu create_submenu_for_new () {
         //     var new_folder_item = new Gtk.MenuItem.with_label (_("Folder"));
         //     new_folder_item.activate.connect (() => on_add_new (true));
 
@@ -209,7 +210,19 @@ namespace Scratch.FolderManager {
         //     new_item.set_submenu (new_menu);
 
         //     return new_item;
-        // }
+
+            var new_folder_item = new GLib.MenuItem (_("Folder"), FileView.ACTION_PREFIX + FileView.ACTION_NEW_FOLDER);
+            new_folder_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.file.get_path ());
+
+            var new_file_item = new GLib.MenuItem (_("Empty File"), FileView.ACTION_PREFIX + FileView.ACTION_NEW_FILE);
+            new_file_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.file.get_path ());
+
+            var menu = new GLib.Menu ();
+            menu.append_item (new_folder_item);
+            menu.append_item (new_file_item);
+
+            return menu;
+        }
 
         public void remove_all_badges () {
             foreach (var child in children) {
@@ -357,7 +370,7 @@ namespace Scratch.FolderManager {
             return null;
         }
 
-        private void on_add_new (bool is_folder) {
+        public void on_add_new (bool is_folder) {
             if (!file.is_executable) {
                 // This is necessary to avoid infinite loop below
                 warning ("Unable to open parent folder");

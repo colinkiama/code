@@ -62,12 +62,12 @@ namespace Scratch.FolderManager {
             open_in_top_section.append_item (new_window_menu_item);
 
             var open_in_app_section = Utils.create_executable_app_items_for_file (file.file, file_type);
-            
+
             var open_in_extra_section = new GLib.Menu ();
             var open_in_other_menu_item = new GLib.MenuItem (_("Other Application…"), FileView.ACTION_PREFIX + FileView.ACTION_SHOW_APP_CHOOSER);
             open_in_other_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
             open_in_extra_section.append_item (open_in_other_menu_item);
-            
+
             open_in_menu.append_section (null, open_in_top_section);
             open_in_menu.append_section (null, open_in_app_section);
             open_in_menu.append_section (null, open_in_extra_section);
