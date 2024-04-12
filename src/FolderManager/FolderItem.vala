@@ -104,11 +104,8 @@ namespace Scratch.FolderManager {
             var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.actions) as SimpleAction;
             launch_app_action.change_state (new GLib.Variant.string (file_type));
 
-            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME);
-            rename_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
-
-            var rename_file_action = Utils.action_from_group (FileView.ACTION_RENAME, view.actions) as SimpleAction;
-            rename_file_action.set_enabled (view.rename_request (file));
+            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FOLDER);            
+            view.rename_folder_action.activate.connect (handle_rename_action);
 
             var delete_menu_item = new GLib.MenuItem (_("Move to Trash"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
             delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
@@ -419,6 +416,28 @@ namespace Scratch.FolderManager {
                 return Source.REMOVE;
             });
         }
+
+        private void handle_rename_action () {
+            selectable = true;
+            if (view.start_editing_item (this)) {
+                // Need to poll view as no signal emited when editing cancelled and need to set
+                // selectable to false anyway.
+                Timeout.add (200, () => {
+                    if (view.editing) {
+                        return Source.CONTINUE;
+                    } else {
+                        view.unselect_all ();
+                        // Must do this *after* unselecting all else sourcelist breaks
+                        selectable = false;
+                    }
+
+                    return Source.REMOVE;
+                });
+            } else {
+                debug ("Could not rename %s", file.path);
+                selectable = false;
+            }
+    }
     }
 
     internal class RenameItem : Code.Widgets.SourceList.Item {

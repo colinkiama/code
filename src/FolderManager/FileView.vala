@@ -27,7 +27,8 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_LAUNCH_APP_WITH_FILE_PATH = "action_launch_app_with_file_path";
     public const string ACTION_SHOW_APP_CHOOSER = "action_show_app_chooser";
     public const string ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH = "action_execute_contract_with_file_path";
-    public const string ACTION_RENAME = "action_rename";
+    public const string ACTION_RENAME_FILE = "action_rename_file";
+    public const string ACTION_RENAME_FOLDER = "action_rename_folder";
     public const string ACTION_DELETE = "action_delete";
     public const string ACTION_NEW_FILE = "action_new_file";
     public const string ACTION_NEW_FOLDER = "action_new_folder";
@@ -39,7 +40,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         { ACTION_LAUNCH_APP_WITH_FILE_PATH, action_launch_app_with_file_path, "as" },
         { ACTION_SHOW_APP_CHOOSER, action_show_app_chooser, "s" },
         { ACTION_EXECUTE_CONTRACT_WITH_FILE_PATH, action_execute_contract_with_file_path, "as" },
-        { ACTION_RENAME, action_rename, "s" },
+        { ACTION_RENAME_FILE, action_rename_file, "s" },
         { ACTION_DELETE, action_delete, "s" },
         { ACTION_NEW_FILE, add_new_file, "s" },
         { ACTION_NEW_FOLDER, add_new_folder, "s"}
@@ -47,6 +48,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
     public SimpleActionGroup actions { get; construct; }
     public ActionGroup toplevel_action_group { get; private set; }
+    public SimpleAction rename_folder_action { get; private set; }
 
     public signal void select (string file);
     public signal bool rename_request (File file);
@@ -74,8 +76,10 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
         git_manager = Scratch.Services.GitManager.get_instance ();
 
+        rename_folder_action = new SimpleAction (ACTION_RENAME_FOLDER, null);
         actions = new SimpleActionGroup ();
         actions.add_action_entries (ACTION_ENTRIES, this);
+        actions.add_action (rename_folder_action);
         insert_action_group (ACTION_GROUP, actions);
 
         realize.connect (() => {
@@ -410,7 +414,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         Utils.execute_contract_with_file_path (path, contract_name, file_type);
     }
 
-    private void action_rename (SimpleAction action, Variant? param) {
+    private void action_rename_file (SimpleAction action, Variant? param) {
         var path = param.get_string ();
 
         if (path == null || path == "") {
