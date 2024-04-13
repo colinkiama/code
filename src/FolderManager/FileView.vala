@@ -32,6 +32,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_DELETE = "action_delete";
     public const string ACTION_NEW_FILE = "action_new_file";
     public const string ACTION_NEW_FOLDER = "action_new_folder";
+    public const string ACTION_CHANGE_BRANCH = "action_change_branch";
 
     private GLib.Settings settings;
     private Scratch.Services.GitManager git_manager;

@@ -26,6 +26,7 @@ namespace Scratch.FolderManager {
 
         private static Icon added_icon;
         private static Icon modified_icon;
+        private SimpleAction change_branch_action;
 
         public signal void closed ();
         public signal void close_all_except ();
@@ -67,6 +68,8 @@ namespace Scratch.FolderManager {
                         name, monitored_repo.branch_name
                     );
                 }
+
+                change_branch_action.set_state (monitored_repo.branch_name);
             }
         }
 
@@ -74,11 +77,14 @@ namespace Scratch.FolderManager {
             monitored_repo = Scratch.Services.GitManager.get_instance ().add_project (this);
             notify["name"].connect (branch_or_name_changed);
             if (monitored_repo != null) {
+                change_branch_action = new SimpleAction.stateful (FileView.ACTION_CHANGE_BRANCH, GLib.VariantType.STRING, "");
                 monitored_repo.branch_changed.connect (branch_or_name_changed);
                 monitored_repo.ignored_changed.connect ((deprioritize_git_ignored));
                 monitored_repo.file_status_change.connect (() => update_item_status (null));
                 monitored_repo.update_status_map ();
                 monitored_repo.branch_changed ();
+                change_branch_action.activate.connect (handle_change_branch_action);
+
             }
         }
 
@@ -181,15 +187,33 @@ namespace Scratch.FolderManager {
         }
 
         protected GLib.Menu create_submenu_for_branch () {
+            // Ensures that action for relevant project is being used
+            view.actions.add_action (change_branch_action);
+
             GLib.Menu top_section = new GLib.Menu ();
             GLib.Menu branch_selection_menu = new GLib.Menu ();
 
-            top_section.append (_("New Branch…"), 
+            top_section.append (_("New Branch…"),
                                 MainWindow.ACTION_PREFIX + MainWindow.ACTION_NEW_BRANCH + "::" + file.file.get_path ());
+            foreach (unowned var branch_name in monitored_repo.get_local_branches ()) {
+                branch_selection_menu.append (branch_name,
+                                             FileView.ACTION_PREFIX + FileView.ACTION_CHANGE_BRANCH
+                                             + "::" + branch_name);
+            }
+
             var menu = new GLib.Menu ();
             menu.append_section (null, top_section);
             menu.append_section (null, branch_selection_menu);
             return menu;
+        }
+
+        private void handle_change_branch_action (GLib.Variant? parameter) {
+            var branch_name = parameter.get_string ();
+            try {
+                monitored_repo.change_branch (branch_name);
+            } catch (GLib.Error e) {
+                warning ("Failed to change branch to %s. %s", branch_name, e.message);
+            }
         }
 
         public void update_item_status (FolderItem? start_folder) {
@@ -501,67 +525,6 @@ namespace Scratch.FolderManager {
 
         public void refresh_diff (ref Gee.HashMap<int, Services.VCStatus> line_status_map, string doc_path) {
             monitored_repo.refresh_diff (doc_path, ref line_status_map);
-        }
-
-        private class ChangeBranchMenu : Gtk.MenuItem {
-            public Scratch.Services.MonitoredRepository monitored_repo {
-                get {
-                    return project_folder.monitored_repo;
-                }
-            }
-            public ProjectFolderItem project_folder { get; construct; }
-            public ChangeBranchMenu (ProjectFolderItem project_folder) {
-                 Object (
-                     project_folder: project_folder
-                 );
-            }
-
-            construct {
-                assert_nonnull (monitored_repo);
-                unowned var current_branch_name = monitored_repo.get_current_branch ();
-                var change_branch_menu = new Gtk.Menu ();
-
-                foreach (unowned var branch_name in monitored_repo.get_local_branches ()) {
-                    var branch_item = new Gtk.CheckMenuItem.with_label (branch_name);
-                    branch_item.draw_as_radio = true;
-
-                    if (branch_name == current_branch_name) {
-                        branch_item.active = true;
-                    }
-
-                    change_branch_menu.add (branch_item);
-
-                    branch_item.toggled.connect (() => {
-                        try {
-                            monitored_repo.change_branch (branch_name);
-                        } catch (GLib.Error e) {
-                            warning ("Failed to change branch to %s. %s", name, e.message);
-                        }
-                    });
-                }
-
-                var main_window = (MainWindow)((Gtk.Application)(GLib.Application.get_default ())).get_active_window ();
-                Utils.action_from_group (
-                    MainWindow.ACTION_NEW_BRANCH, main_window.actions
-                ).set_enabled (monitored_repo.head_is_branch);
-
-                var accel_label = new Granite.AccelLabel.from_action_name (
-                    _("New Branch…"),
-                    MainWindow.ACTION_PREFIX + MainWindow.ACTION_NEW_BRANCH + "::"
-                );
-
-                var branch_item = new Gtk.MenuItem () {
-                    action_name = MainWindow.ACTION_PREFIX + MainWindow.ACTION_NEW_BRANCH,
-                    action_target = project_folder.file.file.get_path ()
-                };
-                branch_item.add (accel_label);
-
-                change_branch_menu.add (new Gtk.SeparatorMenuItem ());
-                change_branch_menu.add (branch_item);
-
-                label = _("Branch");
-                submenu = change_branch_menu;
-            }
         }
     }
 }

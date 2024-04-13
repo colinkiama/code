@@ -104,7 +104,7 @@ namespace Scratch.FolderManager {
             var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.actions) as SimpleAction;
             launch_app_action.change_state (new GLib.Variant.string (file_type));
 
-            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FOLDER);            
+            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FOLDER);
             view.rename_folder_action.activate.connect (handle_rename_action);
 
             var delete_menu_item = new GLib.MenuItem (_("Move to Trash"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
