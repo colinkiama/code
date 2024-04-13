@@ -160,6 +160,11 @@ namespace Scratch.FolderManager {
 
             var direct_actions_menu_section = new GLib.Menu ();
             direct_actions_menu_section.append_submenu (_("New"), create_submenu_for_new ());
+
+            if (monitored_repo != null) {
+                direct_actions_menu_section.append_submenu (_("Branch"), create_submenu_for_branch ());
+            }
+
             direct_actions_menu_section.append_item (delete_menu_item);
 
             var search_menu_item = new GLib.MenuItem (_("Find in Folder…"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL);
@@ -172,6 +177,18 @@ namespace Scratch.FolderManager {
             menu.append_section (null, external_actions_menu_section);
             menu.append_section (null, direct_actions_menu_section);
             menu.append_section (null, search_menu_section);
+            return menu;
+        }
+
+        protected GLib.Menu create_submenu_for_branch () {
+            GLib.Menu top_section = new GLib.Menu ();
+            GLib.Menu branch_selection_menu = new GLib.Menu ();
+
+            top_section.append (_("New Branch…"), 
+                                MainWindow.ACTION_PREFIX + MainWindow.ACTION_NEW_BRANCH + "::" + file.file.get_path ());
+            var menu = new GLib.Menu ();
+            menu.append_section (null, top_section);
+            menu.append_section (null, branch_selection_menu);
             return menu;
         }
 
