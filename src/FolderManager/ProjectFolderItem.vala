@@ -155,29 +155,24 @@ namespace Scratch.FolderManager {
             open_in_menu.append_section (null, open_in_app_section);
             open_in_menu.append_section (null, open_in_extra_section);
 
-            var contractor_submenu = Utils.create_contract_items_for_file (file.file, file_type);
-
             var external_actions_menu_section = new GLib.Menu ();
             external_actions_menu_section.append_item (open_in_terminal_pane_item);
             external_actions_menu_section.append_submenu (_("Open In"), open_in_menu);
-            if (contractor_submenu.get_n_items () > 0) {
-                external_actions_menu_section.append_submenu (_("Other Actions"), contractor_submenu);
-            }
 
-            var direct_actions_menu_section = new GLib.Menu ();
-            direct_actions_menu_section.append_submenu (_("New"), create_submenu_for_new ());
-
+            var folder_actions_menu_section = new GLib.Menu ();
+            folder_actions_menu_section.append_submenu (_("New"), create_submenu_for_new ());
             if (monitored_repo != null) {
-                direct_actions_menu_section.append_submenu (_("Branch"), create_submenu_for_branch ());
+                folder_actions_menu_section.append_submenu (_("Branch"), create_submenu_for_branch ());
             }
-
+            
             var close_other_folders_action = Utils.action_from_group (FileView.ACTION_CLOSE_OTHER_FOLDERS, view.actions) as SimpleAction;
             close_other_folders_action.set_enabled (view.root.children.size > 1);
-
+            
             var close_menu_section = new GLib.Menu ();
             close_menu_section.append (_("Close Folder"), FileView.ACTION_PREFIX + FileView.ACTION_CLOSE_FOLDER + "::" + file.path);
             close_menu_section.append (_("Close Other Folders"), FileView.ACTION_PREFIX + FileView.ACTION_CLOSE_OTHER_FOLDERS + "::" + file.path);
 
+            var direct_actions_menu_section = new GLib.Menu ();
             direct_actions_menu_section.append_item (delete_menu_item);
 
             var search_menu_item = new GLib.MenuItem (_("Find in Folder…"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL);
@@ -188,8 +183,9 @@ namespace Scratch.FolderManager {
 
             var menu = new GLib.Menu ();
             menu.append_section (null, external_actions_menu_section);
-            menu.append_section (null, direct_actions_menu_section);
+            menu.append_section (null, folder_actions_menu_section);
             menu.append_section (null, close_menu_section); 
+            menu.append_section (null, direct_actions_menu_section);
             menu.append_section (null, search_menu_section);
             return menu;
         }
