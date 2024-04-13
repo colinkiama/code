@@ -33,6 +33,8 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_NEW_FILE = "action_new_file";
     public const string ACTION_NEW_FOLDER = "action_new_folder";
     public const string ACTION_CHANGE_BRANCH = "action_change_branch";
+    public const string ACTION_CLOSE_FOLDER = "action_close_folder";
+    public const string ACTION_CLOSE_OTHER_FOLDERS = "action_close_other_folders";
 
     private GLib.Settings settings;
     private Scratch.Services.GitManager git_manager;
@@ -50,6 +52,8 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public SimpleActionGroup actions { get; construct; }
     public ActionGroup toplevel_action_group { get; private set; }
     public SimpleAction rename_folder_action { get; private set; }
+    public SimpleAction close_folder_action { get; private set; }
+    public SimpleAction close_other_folders_action { get; private set; }
 
     public signal void select (string file);
     public signal bool rename_request (File file);
@@ -78,9 +82,14 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         git_manager = Scratch.Services.GitManager.get_instance ();
 
         rename_folder_action = new SimpleAction (ACTION_RENAME_FOLDER, null);
+        close_folder_action = new SimpleAction (ACTION_CLOSE_FOLDER, GLib.VariantType.STRING);
+        close_other_folders_action = new SimpleAction (ACTION_CLOSE_OTHER_FOLDERS, GLib.VariantType.STRING);
         actions = new SimpleActionGroup ();
         actions.add_action_entries (ACTION_ENTRIES, this);
         actions.add_action (rename_folder_action);
+        actions.add_action (close_folder_action);
+        actions.add_action (close_other_folders_action);
+
         insert_action_group (ACTION_GROUP, actions);
 
         realize.connect (() => {

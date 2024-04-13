@@ -171,6 +171,14 @@ namespace Scratch.FolderManager {
                 direct_actions_menu_section.append_submenu (_("Branch"), create_submenu_for_branch ());
             }
 
+            view.close_folder_action.activate.connect (handle_close_folder_action);
+            view.close_other_folders_action.activate.connect (handle_close_other_folders_action);
+            view.close_other_folders_action.set_enabled (view.root.children.size > 1);
+
+            var close_menu_section = new GLib.Menu ();
+            close_menu_section.append (_("Close Folder"), FileView.ACTION_PREFIX + FileView.ACTION_CLOSE_FOLDER + "::" + file.path);
+            close_menu_section.append (_("Close Other Folders"), FileView.ACTION_PREFIX + FileView.ACTION_CLOSE_OTHER_FOLDERS + "::" + file.path);
+
             direct_actions_menu_section.append_item (delete_menu_item);
 
             var search_menu_item = new GLib.MenuItem (_("Find in Folder…"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL);
@@ -182,6 +190,7 @@ namespace Scratch.FolderManager {
             var menu = new GLib.Menu ();
             menu.append_section (null, external_actions_menu_section);
             menu.append_section (null, direct_actions_menu_section);
+            menu.append_section (null, close_menu_section); 
             menu.append_section (null, search_menu_section);
             return menu;
         }
@@ -206,6 +215,25 @@ namespace Scratch.FolderManager {
             menu.append_section (null, branch_selection_menu);
             return menu;
         }
+
+        private void handle_close_folder_action (GLib.Variant? parameter) {
+            var path = parameter.get_string ();
+            if (path == null || path == "" || path != file.path) {
+                return;
+            }
+
+            closed ();
+        }
+
+        private void handle_close_other_folders_action (GLib.Variant? parameter) {
+            var path = parameter.get_string ();
+            if (path == null || path == "" || path != file.path) {
+                return;
+            }
+
+            close_all_except ();
+        }
+
 
         private void handle_change_branch_action (GLib.Variant? parameter) {
             var branch_name = parameter.get_string ();
