@@ -46,14 +46,16 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         { ACTION_RENAME_FILE, action_rename_file, "s" },
         { ACTION_DELETE, action_delete, "s" },
         { ACTION_NEW_FILE, add_new_file, "s" },
-        { ACTION_NEW_FOLDER, add_new_folder, "s"}
+        { ACTION_NEW_FOLDER, add_new_folder, "s"},
+        { ACTION_CLOSE_FOLDER, action_close_folder, "s"},
+        { ACTION_CLOSE_OTHER_FOLDERS, action_close_other_folders, "s"}
     };
 
     public SimpleActionGroup actions { get; construct; }
     public ActionGroup toplevel_action_group { get; private set; }
     public SimpleAction rename_folder_action { get; private set; }
-    public SimpleAction close_folder_action { get; private set; }
-    public SimpleAction close_other_folders_action { get; private set; }
+    //  public SimpleAction close_folder_action { get; private set; }
+    //  public SimpleAction close_other_folders_action { get; private set; }
 
     public signal void select (string file);
     public signal bool rename_request (File file);
@@ -82,13 +84,9 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         git_manager = Scratch.Services.GitManager.get_instance ();
 
         rename_folder_action = new SimpleAction (ACTION_RENAME_FOLDER, null);
-        close_folder_action = new SimpleAction (ACTION_CLOSE_FOLDER, GLib.VariantType.STRING);
-        close_other_folders_action = new SimpleAction (ACTION_CLOSE_OTHER_FOLDERS, GLib.VariantType.STRING);
         actions = new SimpleActionGroup ();
         actions.add_action_entries (ACTION_ENTRIES, this);
         actions.add_action (rename_folder_action);
-        actions.add_action (close_folder_action);
-        actions.add_action (close_other_folders_action);
 
         insert_action_group (ACTION_GROUP, actions);
 
@@ -96,6 +94,34 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
             toplevel_action_group = get_action_group (MainWindow.ACTION_GROUP);
             assert_nonnull (toplevel_action_group);
         });
+    }
+
+    private void action_close_folder (SimpleAction action, GLib.Variant? parameter) {
+            var path = parameter.get_string ();
+            if (path == null || path == "") {
+                return;
+            }
+
+            var project_item = find_path (root, path) as ProjectFolderItem;
+            if (project_item == null) {
+                return;
+            }
+
+            project_item.closed ();
+    }
+
+    private void action_close_other_folders (SimpleAction action, GLib.Variant? parameter) {
+        var path = parameter.get_string ();
+        if (path == null || path == "") {
+            return;
+        }
+
+        var project_item = find_path (root, path) as ProjectFolderItem;
+        if (project_item == null) {
+            return;
+        }
+
+        project_item.close_all_except ();
     }
 
     private void on_item_selected (Code.Widgets.SourceList.Item? item) {
