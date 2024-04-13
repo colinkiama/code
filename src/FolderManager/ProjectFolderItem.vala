@@ -138,9 +138,6 @@ namespace Scratch.FolderManager {
             var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.actions) as SimpleAction;
             launch_app_action.change_state (new GLib.Variant.string (file_type));
 
-            var delete_menu_item = new GLib.MenuItem (_("Move to Trash"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
-            delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
-
             var open_in_menu = new GLib.Menu ();
             var open_in_top_section = new GLib.Menu ();
 
@@ -164,15 +161,50 @@ namespace Scratch.FolderManager {
             if (monitored_repo != null) {
                 folder_actions_menu_section.append_submenu (_("Branch"), create_submenu_for_branch ());
             }
-            
+
             var close_other_folders_action = Utils.action_from_group (FileView.ACTION_CLOSE_OTHER_FOLDERS, view.actions) as SimpleAction;
             close_other_folders_action.set_enabled (view.root.children.size > 1);
-            
+
             var close_menu_section = new GLib.Menu ();
             close_menu_section.append (_("Close Folder"), FileView.ACTION_PREFIX + FileView.ACTION_CLOSE_FOLDER + "::" + file.path);
             close_menu_section.append (_("Close Other Folders"), FileView.ACTION_PREFIX + FileView.ACTION_CLOSE_OTHER_FOLDERS + "::" + file.path);
 
+            var n_open = Scratch.Services.DocumentManager.get_instance ().open_for_project (path);
+            var open_text = ngettext ("Close %u Open Document",
+                                      "Close %u Open Documents",
+                                      n_open).printf (n_open);
+            var close_open_documents_menu_item = new GLib.MenuItem (open_text,
+                                                                    MainWindow.ACTION_PREFIX 
+                                                                    + MainWindow.ACTION_CLOSE_PROJECT_DOCS + "::" + file.path);
+
+            var hide_text = ngettext ("Hide %u Open Document",
+                                      "Hide %u Open Documents",
+                                      n_open).printf (n_open);
+            var hide_documents_menu_item = new GLib.MenuItem (hide_text,
+                                                              MainWindow.ACTION_PREFIX 
+                                                              + MainWindow.ACTION_HIDE_PROJECT_DOCS + "::" + file.path);
+
+            var n_restorable = Scratch.Services.DocumentManager.get_instance ().restorable_for_project (path);
+            var restore_text = ngettext ("Restore %u Hidden Document",
+                                         "Restore %u Hidden Documents",
+                                         n_restorable).printf (n_restorable);
+            var restore_documents_menu_item = new GLib.MenuItem (restore_text,
+                                                              MainWindow.ACTION_PREFIX
+                                                              + MainWindow.ACTION_RESTORE_PROJECT_DOCS + "::" + file.path);
+
+            var delete_menu_item = new GLib.MenuItem (_("Move to Trash"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
+            delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+
             var direct_actions_menu_section = new GLib.Menu ();
+            if (n_restorable > 0) {
+                direct_actions_menu_section.append_item (restore_documents_menu_item);
+            }
+
+            if (n_open > 0) {
+                direct_actions_menu_section.append_item (hide_documents_menu_item);
+                direct_actions_menu_section.append_item (close_open_documents_menu_item);
+            }
+
             direct_actions_menu_section.append_item (delete_menu_item);
 
             var search_menu_item = new GLib.MenuItem (_("Find in Folder…"), MainWindow.ACTION_PREFIX + MainWindow.ACTION_FIND_GLOBAL);
