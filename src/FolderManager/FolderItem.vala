@@ -91,6 +91,7 @@ namespace Scratch.FolderManager {
             var open_in_terminal_pane_item = new GLib.MenuItem (_("Open in Terminal Pane"), MainWindow.ACTION_PREFIX
                                                                 + MainWindow.ACTION_OPEN_IN_TERMINAL);
             open_in_terminal_pane_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_path ()));
+            open_in_terminal_pane_item.set_attribute_value ("accel", "");
 
             GLib.FileInfo info = null;
 
