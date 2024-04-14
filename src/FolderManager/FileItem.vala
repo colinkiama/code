@@ -28,13 +28,17 @@ namespace Scratch.FolderManager {
         }
 
         public override GLib.Menu? get_context_menu () {
-            var open_in_terminal_pane_item = new GLib.MenuItem (_("Open in Terminal Pane"), MainWindow.ACTION_PREFIX
-                                                                + MainWindow.ACTION_OPEN_IN_TERMINAL);
-            open_in_terminal_pane_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_parent ().get_path ()));
+            var open_in_terminal_pane_item = new GLib.MenuItem (_("Open in Terminal Pane"),
+                                                                MainWindow.ACTION_PREFIX
+                                                                + MainWindow.ACTION_OPEN_IN_TERMINAL
+                                                                + "::"
+                                                                + file.path);
 
-            var new_window_menu_item = new GLib.MenuItem (_("New Window"), MainWindow.ACTION_PREFIX
-                                                      + MainWindow.ACTION_OPEN_IN_NEW_WINDOW);
-            new_window_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, new Variant.string (file.file.get_path ()));
+            var new_window_menu_item = new GLib.MenuItem (_("New Window"),
+                                                          MainWindow.ACTION_PREFIX
+                                                          + MainWindow.ACTION_OPEN_IN_NEW_WINDOW
+                                                          + "::"
+                                                          + file.path);
 
             GLib.FileInfo info = null;
 
@@ -45,17 +49,25 @@ namespace Scratch.FolderManager {
             }
 
             var file_type = info.get_attribute_string (GLib.FileAttribute.STANDARD_CONTENT_TYPE);
-            var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH, view.actions) as SimpleAction;
+            var launch_app_action = Utils.action_from_group (FileView.ACTION_LAUNCH_APP_WITH_FILE_PATH,
+                                                             view.actions) as SimpleAction;
             launch_app_action.change_state (new GLib.Variant.string (file_type));
 
-            var rename_menu_item = new GLib.MenuItem (_("Rename"), FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FILE);
-            rename_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+            var rename_menu_item = new GLib.MenuItem (_("Rename"),
+                                                      FileView.ACTION_PREFIX
+                                                      + FileView.ACTION_RENAME_FILE
+                                                      + "::"
+                                                      + file.path);
 
-            var rename_file_action = Utils.action_from_group (FileView.ACTION_RENAME_FILE, view.actions) as SimpleAction;
+            var rename_file_action = Utils.action_from_group (FileView.ACTION_RENAME_FILE,
+                                                              view.actions) as SimpleAction;
             rename_file_action.set_enabled (view.rename_request (file));
 
-            var delete_menu_item = new GLib.MenuItem (_("Move to Trash"), FileView.ACTION_PREFIX + FileView.ACTION_DELETE);
-            delete_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+            var delete_menu_item = new GLib.MenuItem (_("Move to Trash"),
+                                                      FileView.ACTION_PREFIX
+                                                      + FileView.ACTION_DELETE
+                                                      + "::"
+                                                      + file.path);
 
             var open_in_menu = new GLib.Menu ();
             var open_in_top_section = new GLib.Menu ();
@@ -64,8 +76,11 @@ namespace Scratch.FolderManager {
             var open_in_app_section = Utils.create_executable_app_items_for_file (file.file, file_type);
 
             var open_in_extra_section = new GLib.Menu ();
-            var open_in_other_menu_item = new GLib.MenuItem (_("Other Application…"), FileView.ACTION_PREFIX + FileView.ACTION_SHOW_APP_CHOOSER);
-            open_in_other_menu_item.set_attribute_value (GLib.Menu.ATTRIBUTE_TARGET, file.path);
+            var open_in_other_menu_item = new GLib.MenuItem (_("Other Application…"),
+                                                             FileView.ACTION_PREFIX
+                                                             + FileView.ACTION_SHOW_APP_CHOOSER
+                                                             + "::"
+                                                             + file.path);
             open_in_extra_section.append_item (open_in_other_menu_item);
 
             open_in_menu.append_section (null, open_in_top_section);
