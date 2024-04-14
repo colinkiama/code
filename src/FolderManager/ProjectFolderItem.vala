@@ -174,14 +174,14 @@ namespace Scratch.FolderManager {
                                       "Close %u Open Documents",
                                       n_open).printf (n_open);
             var close_open_documents_menu_item = new GLib.MenuItem (open_text,
-                                                                    MainWindow.ACTION_PREFIX 
+                                                                    MainWindow.ACTION_PREFIX
                                                                     + MainWindow.ACTION_CLOSE_PROJECT_DOCS + "::" + file.path);
 
             var hide_text = ngettext ("Hide %u Open Document",
                                       "Hide %u Open Documents",
                                       n_open).printf (n_open);
             var hide_documents_menu_item = new GLib.MenuItem (hide_text,
-                                                              MainWindow.ACTION_PREFIX 
+                                                              MainWindow.ACTION_PREFIX
                                                               + MainWindow.ACTION_HIDE_PROJECT_DOCS + "::" + file.path);
 
             var n_restorable = Scratch.Services.DocumentManager.get_instance ().restorable_for_project (path);
@@ -216,7 +216,7 @@ namespace Scratch.FolderManager {
             var menu = new GLib.Menu ();
             menu.append_section (null, external_actions_menu_section);
             menu.append_section (null, folder_actions_menu_section);
-            menu.append_section (null, close_menu_section); 
+            menu.append_section (null, close_menu_section);
             menu.append_section (null, direct_actions_menu_section);
             menu.append_section (null, search_menu_section);
             return menu;
