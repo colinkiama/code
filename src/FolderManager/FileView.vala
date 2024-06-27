@@ -25,11 +25,9 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_GROUP = "file-view";
     public const string ACTION_PREFIX = ACTION_GROUP + ".";
     public const string ACTION_RENAME_FILE = "rename-file";
-    public const string ACTION_RENAME_FOLDER = "rename-folder";
     public const string ACTION_DELETE = "delete";
     public const string ACTION_NEW_FILE = "new-file";
     public const string ACTION_NEW_FOLDER = "new-folder";
-    public const string ACTION_CHANGE_BRANCH = "change-branch";
     public const string ACTION_CLOSE_FOLDER = "close-folder";
     public const string ACTION_CLOSE_OTHER_FOLDERS = "close-other-folders";
 
