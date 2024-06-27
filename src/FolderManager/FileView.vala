@@ -44,7 +44,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         { ACTION_CLOSE_OTHER_FOLDERS, action_close_other_folders, "s"}
     };
 
-    public SimpleActionGroup actions { get; construct; }
+    public SimpleActionGroup actions { get; private set; }
     public ActionGroup toplevel_action_group { get; private set; }
     public SimpleAction rename_folder_action { get; private set; }
 
