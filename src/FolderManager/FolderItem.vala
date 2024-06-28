@@ -123,12 +123,12 @@ namespace Scratch.FolderManager {
 
             var rename_menu_item = new Gtk.MenuItem.with_label (_("Rename")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FOLDER,
-                action_target = file.path
+                action_target = new Variant.string (file.path)
             };
 
             var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_DELETE,
-                action_target = file.path
+                action_target = new Variant.string (file.path)
             };
 
             var search_item = new Gtk.MenuItem.with_label (_("Find in Folder…")) {
@@ -202,12 +202,12 @@ namespace Scratch.FolderManager {
         protected Gtk.MenuItem create_submenu_for_new () {
             var new_folder_item = new Gtk.MenuItem.with_label (_("Folder")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_NEW_FOLDER,
-                action_target = file.path
+                action_target = new Variant.string (file.path)
             };
 
             var new_file_item = new Gtk.MenuItem.with_label (_("Empty File")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_NEW_FILE,
-                action_target = file.path
+                action_target = new Variant.string (file.path)
             };
 
             var new_menu = new Gtk.Menu ();

@@ -122,13 +122,13 @@ namespace Scratch.FolderManager {
 
             var rename_item = new Gtk.MenuItem.with_label (_("Rename")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FILE,
-                action_target = file.path,
+                action_target = new Variant.string (file.path),
                 sensitive = view.rename_request (file)
             };
 
             var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_DELETE,
-                action_target = file.path
+                action_target = new Variant.string (file.path)
             };
 
             var menu = new Gtk.Menu ();
