@@ -144,8 +144,10 @@ namespace Scratch.FolderManager {
                 }
             });
 
-            var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash"));
-            delete_item.activate.connect (trash);
+            var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash")) {
+                action_name = FileView.ACTION_PREFIX + FileView.ACTION_DELETE,
+                action_target = file.path
+            };
 
             var search_item = new Gtk.MenuItem.with_label (_("Find in Folder…")) {
                 action_name = "win.action_find_global",
@@ -153,6 +155,7 @@ namespace Scratch.FolderManager {
             };
 
             var menu = new Gtk.Menu ();
+            menu.insert_action_group (FileView.ACTION_GROUP, view.actions);
             menu.append (open_in_terminal_pane_item);
             menu.append (create_submenu_for_open_in (info, file_type));
             menu.append (contractor_item);
@@ -215,11 +218,15 @@ namespace Scratch.FolderManager {
         }
 
         protected Gtk.MenuItem create_submenu_for_new () {
-            var new_folder_item = new Gtk.MenuItem.with_label (_("Folder"));
-            new_folder_item.activate.connect (() => on_add_new (true));
+            var new_folder_item = new Gtk.MenuItem.with_label (_("Folder")) {
+                action_name = FileView.ACTION_PREFIX + FileView.ACTION_NEW_FOLDER,
+                action_target = file.path
+            };
 
-            var new_file_item = new Gtk.MenuItem.with_label (_("Empty File"));
-            new_file_item.activate.connect (() => on_add_new (false));
+            var new_file_item = new Gtk.MenuItem.with_label (_("Empty File")) {
+                action_name = FileView.ACTION_PREFIX + FileView.ACTION_NEW_FILE,
+                action_target = file.path
+            };
 
             var new_menu = new Gtk.Menu ();
             new_menu.append (new_folder_item);
