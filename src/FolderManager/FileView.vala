@@ -46,7 +46,6 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
     public SimpleActionGroup actions { get; private set; }
     public ActionGroup toplevel_action_group { get; private set; }
-    public SimpleAction rename_folder_action { get; private set; }
 
     public signal void select (string file);
     public signal bool rename_request (File file);
@@ -74,11 +73,8 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
         git_manager = Scratch.Services.GitManager.get_instance ();
 
-        rename_folder_action = new SimpleAction (ACTION_RENAME_FOLDER, null);
         actions = new SimpleActionGroup ();
         actions.add_action_entries (ACTION_ENTRIES, this);
-        actions.add_action (rename_folder_action);
-
         insert_action_group (ACTION_GROUP, actions);
 
         realize.connect (() => {
