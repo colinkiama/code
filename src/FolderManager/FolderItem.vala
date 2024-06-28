@@ -121,28 +121,10 @@ namespace Scratch.FolderManager {
             var contractor_item = new Gtk.MenuItem.with_label (_("Other Actions"));
             contractor_item.submenu = contractor_menu;
 
-            var rename_menu_item = new Gtk.MenuItem.with_label (_("Rename"));
-            rename_menu_item.activate.connect (() => {
-                selectable = true;
-                if (view.start_editing_item (this)) {
-                    // Need to poll view as no signal emited when editing cancelled and need to set
-                    // selectable to false anyway.
-                    Timeout.add (200, () => {
-                        if (view.editing) {
-                            return Source.CONTINUE;
-                        } else {
-                            view.unselect_all ();
-                            // Must do this *after* unselecting all else sourcelist breaks
-                            selectable = false;
-                        }
-
-                        return Source.REMOVE;
-                    });
-                } else {
-                    debug ("Could not rename %s", file.path);
-                    selectable = false;
-                }
-            });
+            var rename_menu_item = new Gtk.MenuItem.with_label (_("Rename")) {
+                action_name = FileView.ACTION_PREFIX + FileView.ACTION_RENAME_FOLDER,
+                action_target = file.path
+            };
 
             var delete_item = new Gtk.MenuItem.with_label (_("Move to Trash")) {
                 action_name = FileView.ACTION_PREFIX + FileView.ACTION_DELETE,

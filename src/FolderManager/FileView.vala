@@ -25,6 +25,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     public const string ACTION_GROUP = "file-view";
     public const string ACTION_PREFIX = ACTION_GROUP + ".";
     public const string ACTION_RENAME_FILE = "rename-file";
+    public const string ACTION_RENAME_FOLDER = "rename-folder";
     public const string ACTION_DELETE = "delete";
     public const string ACTION_NEW_FILE = "new-file";
     public const string ACTION_NEW_FOLDER = "new-folder";
@@ -37,6 +38,7 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
     private Scratch.Services.PluginsManager plugins;
     private const ActionEntry[] ACTION_ENTRIES = {
         { ACTION_RENAME_FILE, action_rename_file, "s" },
+        { ACTION_RENAME_FOLDER, action_rename_folder, "s" },
         { ACTION_DELETE, action_delete, "s" },
         { ACTION_NEW_FILE, add_new_file, "s" },
         { ACTION_NEW_FOLDER, add_new_folder, "s"},
@@ -321,6 +323,33 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         });
     }
 
+    private void rename_folder (string path) {
+        var folder_to_rename = find_path (root, path) as FolderItem;
+        if (folder_to_rename == null) {
+            critical ("Could not find folder from given path to rename: %s", path);
+        }
+
+        folder_to_rename.selectable = true;
+            if (start_editing_item (folder_to_rename)) {
+                // Need to poll view as no signal emited when editing cancelled and need to set
+                // selectable to false anyway.
+                Timeout.add (200, () => {
+                    if (editing) {
+                        return Source.CONTINUE;
+                    } else {
+                        unselect_all ();
+                        // Must do this *after* unselecting all else sourcelist breaks
+                        folder_to_rename.selectable = false;
+                    }
+
+                    return Source.REMOVE;
+                });
+            } else {
+                critical ("Could not rename %s", path);
+                folder_to_rename.selectable = false;
+            }
+    }
+
     private void rename_items_with_same_name (Item item) {
         string item_name = item.file.name;
         foreach (var child in this.root.children) {
@@ -382,6 +411,17 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
 
         rename_file (path);
     }
+
+    private void action_rename_folder (SimpleAction action, Variant? param) {
+        var path = param.get_string ();
+
+        if (path == null || path == "") {
+            return;
+        }
+
+        rename_folder (path);
+    }
+
 
      private void action_delete (SimpleAction action, Variant? param) {
         var path = param.get_string ();
