@@ -433,6 +433,16 @@ public class Scratch.FolderManager.FileView : Code.Widgets.SourceList, Code.Pane
         var item = find_path (root, path);
         if (item != null) {
             var item_to_delete = item as Scratch.FolderManager.Item;
+
+            // Wait for ProjectFolderItem closed signal handle logic to run before moving item to trash
+            if (item_to_delete is Scratch.FolderManager.ProjectFolderItem) {
+                item_to_delete.closed.connect_after (() => {
+                    item_to_delete.trash ();
+                });
+                item_to_delete.closed ();
+                return;
+            }
+
             item_to_delete.trash ();
         }
     }
